@@ -1,0 +1,9 @@
+.vs
+.vscode
+.xmake
+.cache
+
+# build
+build
+out
+imgui.ini
