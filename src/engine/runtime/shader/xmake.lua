@@ -8,11 +8,9 @@ target("shader")
     -- add_packages("glslang")
 
     on_load(function (target)
-        local configs = 
-        {
-            header = "precompile.hpp",
-            namespace = "shader"
-        }
+        local configs = {}
+        configs.header = "precompile.hpp"
+        configs.namespace = "shader"
         target:extraconf_set("rules", "bin2lib.header", configs)
     end)
 target_end()
