@@ -2,13 +2,12 @@
 
 target("shader")
     set_kind("$(kind)")
+    add_rules("module", "bin2lib")
     add_files("*.vert", "*.frag")
+
     -- add_packages("glslang")
 
-    add_rules("bin2lib")
-    on_load(componet_config)
-
-    after_load(function (target)
+    on_load(function (target)
         local configs = 
         {
             header = "precompile.hpp",
