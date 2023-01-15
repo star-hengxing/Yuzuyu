@@ -3,7 +3,7 @@ local function header_codegen(output, namespace, sourcebatch)
 
     local line = string.format("#pragma once\n#include <string_view>\n")
     output:printf(line)
-    output:printf("#ifdef _WIN32\n")
+    output:printf("#if defined(_WIN32) && defined(LIBRARY_DLL)\n")
     output:printf("#define LIBRARY_IMPORT __declspec(dllimport)\n")
     output:printf("#else\n")
     output:printf("#define LIBRARY_IMPORT\n")

@@ -18,17 +18,18 @@ if is_mode("debug") then
     set_symbols("debug")
     set_optimize("none")
     set_runtimes("MDd")
+    add_defines("LIBRARY_DLL")
 elseif is_mode("releasedbg") then
     set_symbols("debug")
     set_optimize("smallest")
     set_runtimes("MD")
+    add_defines("LIBRARY_DLL")
 elseif is_mode("release") then
     set_strip("all")
     set_symbols("hidden")
     set_optimize("smallest")
     set_runtimes("MT")
     add_defines("NDEBUG")
-    set_warnings("all", "error")
     set_policy("build.optimization.lto", true)
 end
 

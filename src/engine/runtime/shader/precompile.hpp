@@ -1,7 +1,7 @@
 // do not edit!
 #pragma once
 #include <string_view>
-#ifdef _WIN32
+#if defined(_WIN32) && defined(LIBRARY_DLL)
 #define LIBRARY_IMPORT __declspec(dllimport)
 #else
 #define LIBRARY_IMPORT
