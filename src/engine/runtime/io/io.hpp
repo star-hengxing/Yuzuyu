@@ -1,8 +1,14 @@
 #pragma once
 
+#ifdef USE_MODULES
+import <iostream>;
+import <memory>;
+import <tuple>;
+#else
 #include <iostream>
 #include <memory>
 #include <tuple>
+#endif
 
 #include <runtime/helper/basic.hpp>
 

@@ -1,4 +1,8 @@
+#ifdef USE_MODULES
+import <fstream>;
+#else
 #include <fstream>
+#endif
 
 #include "io.hpp"
 

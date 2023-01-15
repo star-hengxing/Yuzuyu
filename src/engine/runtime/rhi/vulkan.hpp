@@ -1,6 +1,10 @@
 #pragma once
 
+#ifdef USE_MODULES
+import <vector>;
+#else
 #include <vector>
+#endif
 
 #include <volk.h>
 #include <GLFW/glfw3.h>

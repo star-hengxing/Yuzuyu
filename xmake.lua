@@ -6,11 +6,11 @@ set_xmakever("2.7.5")
 set_warnings("all")
 set_languages("c++20")
 
--- support utf-8 on msvc
-if is_host("windows") then
-    add_defines("UNICODE", "_UNICODE")
-    add_cxflags("/execution-charset:utf-8", "/source-charset:utf-8", {tools = "cl"})
-end
+option("modules")
+    set_default(false)
+    set_showmenu(true)
+    set_description("Enable c++ 20 modules (default: false)")
+option_end()
 
 add_rules("mode.debug", "mode.releasedbg", "mode.release")
 
@@ -32,9 +32,20 @@ elseif is_mode("release") then
     set_policy("build.optimization.lto", true)
 end
 
+-- support utf-8 on msvc
+if is_host("windows") then
+    add_defines("UNICODE", "_UNICODE")
+    add_cxflags("/execution-charset:utf-8", "/source-charset:utf-8", {tools = "cl"})
+end
+
 -- accelerated linking using dynamic libraries
 if is_mode("debug", "releasedbg") then
     add_requireconfs("*", {configs = {shared = true}})
+end
+
+if has_config("modules") then
+    add_defines("USE_MODULES")
+    set_policy("build.c++.modules", true)
 end
 
 includes("src")

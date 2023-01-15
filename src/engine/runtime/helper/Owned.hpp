@@ -1,7 +1,12 @@
 #pragma once
 
+#ifdef USE_MODULES
+import <cstdint>;
+import <utility>;
+#else
 #include <cstdint>
 #include <utility>
+#endif
 
 template <typename T>
 struct Owned

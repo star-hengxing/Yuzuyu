@@ -1,6 +1,10 @@
 #pragma once
 
+#ifdef USE_MODULES
+import <ranges>;
+#else
 #include <ranges>
+#endif
 
 #include "basic_type.hpp"
 

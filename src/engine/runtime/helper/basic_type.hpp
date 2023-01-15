@@ -1,6 +1,10 @@
 #pragma once
 
+#ifdef USE_MODULES
+import <type_traits>;
+#else
 #include <type_traits>
+#endif
 
 using u8  = uint8_t;
 using u16 = uint16_t;

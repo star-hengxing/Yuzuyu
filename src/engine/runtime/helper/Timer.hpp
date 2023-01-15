@@ -1,7 +1,13 @@
 #pragma once
 
+#ifdef USE_MODULES
+import <iostream>;
+import <chrono>;
+#else
 #include <iostream>
 #include <chrono>
+#endif
+
 
 #include "basic_type.hpp"
 

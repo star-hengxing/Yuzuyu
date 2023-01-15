@@ -1,6 +1,10 @@
 #pragma once
 
+#ifdef USE_MODULES
+import <tuple>;
+#else
 #include <tuple>
+#endif
 
 #include <GLFW/glfw3.h>
 

@@ -1,6 +1,12 @@
+#ifdef USE_MODULES
+import <source_location>;
+import <limits>;
+import <array>;
+#else
 #include <source_location>
 #include <limits>
 #include <array>
+#endif
 
 #include <volk.h>
 #include <GLFW/glfw3.h>
