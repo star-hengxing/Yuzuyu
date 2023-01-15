@@ -9,7 +9,7 @@ set_languages("c++20")
 option("modules")
     set_default(false)
     set_showmenu(true)
-    set_description("Enable c++ 20 modules (default: false)")
+    set_description("Enable c++20 stl header units (default: false)")
 option_end()
 
 add_rules("mode.debug", "mode.releasedbg", "mode.release")

@@ -75,7 +75,7 @@ rule("bin2lib.build")
             local file = io.open(cppfile, 'w')
             if file then
                 local binarydata = bytes(io.readfile(spvfile, {encoding = "binary"}))
-                local namespace = target:extraconf("rules", "bin2lib.header", "namespace") or "Shader"
+                local namespace = target:extraconf("rules", "bin2lib", "namespace") or "Shader"
                 local cpp = cpp_codegen(binarydata, sourcefile, namespace)
                 file:printf(cpp)
                 file:close()

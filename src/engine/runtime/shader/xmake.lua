@@ -11,6 +11,6 @@ target("shader")
         local configs = {}
         configs.header = "precompile.hpp"
         configs.namespace = "shader"
-        target:extraconf_set("rules", "bin2lib.header", configs)
+        target:extraconf_set("rules", "bin2lib", configs)
     end)
 target_end()
