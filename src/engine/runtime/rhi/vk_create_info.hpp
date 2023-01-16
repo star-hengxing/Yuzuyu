@@ -1,8 +1,21 @@
 #pragma once
 
+#ifdef USE_MODULES
+import <source_location>;
+#else
+#include <source_location>
+#endif
+
 #include <volk.h>
 
 #include <runtime/helper/marco.hpp>
+
+auto check_vulkan_result(const char* path, int line, const char* function, VkResult result) -> void;
+
+#define CHECK_RESULT(result) check_vulkan_result( \
+    std::source_location::current().file_name(),  \
+    std::source_location::current().line(),       \
+    std::source_location::current().function_name(), result)
 
 NAMESPACE_BEGIN(vk_create_info)
 
@@ -62,10 +75,11 @@ inline auto framebuffer() -> VkFramebufferCreateInfo
     return info;
 }
 
-inline auto semaphore() -> VkSemaphoreCreateInfo
+inline auto semaphore(VkSemaphoreCreateFlags flags = 0) -> VkSemaphoreCreateInfo
 {
     VkSemaphoreCreateInfo info{};
     info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    info.flags = flags;
     return info;
 }
 
@@ -325,7 +339,7 @@ inline auto pipeline_rasterization_state(
     return info;
 }
 
-inline auto pipeline_color_attachment_state(
+inline auto pipeline_color_blend_attachment_state(
     VkColorComponentFlags colorWriteMask,
     VkBool32 blendEnable) -> VkPipelineColorBlendAttachmentState
 {
@@ -347,20 +361,18 @@ inline auto pipeline_color_blend_state(
     return info;
 }
 
-inline auto pipeline_depthStencil_state(
-    VkBool32 depthTestEnable, VkBool32 depthWriteEnable,
-    VkCompareOp depthCompareOp) -> VkPipelineDepthStencilStateCreateInfo
+inline auto pipeline_depth_stencil_state()
+    -> VkPipelineDepthStencilStateCreateInfo
 {
     VkPipelineDepthStencilStateCreateInfo info{};
     info.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-    info.depthTestEnable = depthTestEnable;
-    info.depthWriteEnable = depthWriteEnable;
-    info.depthCompareOp = depthCompareOp;
-    info.back.compareOp = VK_COMPARE_OP_ALWAYS;
+    info.depthTestEnable = VK_FALSE;
+    info.depthWriteEnable = VK_FALSE;
+    info.depthCompareOp = VK_COMPARE_OP_ALWAYS;
     return info;
 }
 
-inline auto Pipeline_viewport_state(
+inline auto pipeline_viewport_state(
     uint32_t viewportCount, uint32_t scissorCount,
     VkPipelineViewportStateCreateFlags flags = 0)
     -> VkPipelineViewportStateCreateInfo
@@ -373,7 +385,7 @@ inline auto Pipeline_viewport_state(
     return info;
 }
 
-inline auto Pipeline_multisample_state(
+inline auto pipeline_multisample_state(
     VkSampleCountFlagBits rasterizationSamples,
     VkPipelineMultisampleStateCreateFlags flags = 0)
     -> VkPipelineMultisampleStateCreateInfo
@@ -461,12 +473,12 @@ inline auto command_buffer_begin() -> VkCommandBufferBeginInfo
     return info;
 }
 
-inline auto submit(uint32_t count, VkCommandBuffer* commands) -> VkSubmitInfo
+inline auto submit(uint32_t commandBufferCount, VkCommandBuffer* pCommandBuffers) -> VkSubmitInfo
 {
     VkSubmitInfo info{};
     info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    info.commandBufferCount = count;
-    info.pCommandBuffers = commands;
+    info.commandBufferCount = commandBufferCount;
+    info.pCommandBuffers = pCommandBuffers;
     return info;
 }
 
@@ -474,6 +486,28 @@ inline auto present() -> VkPresentInfoKHR
 {
     VkPresentInfoKHR info{};
     info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    return info;
+}
+
+inline auto shader_module(const uint32_t* pCode, const size_t codeSize)
+    -> VkShaderModuleCreateInfo
+{
+    VkShaderModuleCreateInfo info{};
+    info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    info.pCode = pCode;
+    info.codeSize = codeSize;
+    return info;
+}
+
+inline auto pipeline_shader_state(
+    VkShaderStageFlagBits stage, VkShaderModule Module)
+    -> VkPipelineShaderStageCreateInfo
+{
+    VkPipelineShaderStageCreateInfo info{};
+    info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    info.stage = stage;
+    info.module = Module;
+    info.pName = "main";
     return info;
 }
 

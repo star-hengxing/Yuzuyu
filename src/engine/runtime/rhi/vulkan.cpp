@@ -1,43 +1,21 @@
 #ifdef USE_MODULES
-import <source_location>;
 import <limits>;
 import <array>;
 #else
-#include <source_location>
 #include <limits>
 #include <array>
 #endif
 
 #include <volk.h>
-#include <GLFW/glfw3.h>
 #include <VkBootstrap.h>
-#include <spdlog/spdlog.h>
 
 #include <runtime/shader/precompile.hpp>
 #include <runtime/helper/range.hpp>
-#include <runtime/io/io.hpp>
-#include <config.hpp>
+#include "shader_module.hpp"
 #include "vk_create_info.hpp"
 #include "vulkan.hpp"
 
 // TODO: more friendly handle error
-
-static auto check_vulkan_result(
-    const char* path,
-    int line,
-    const char* function,
-    VkResult result) -> void
-{
-    if (result == VK_SUCCESS)
-        return;
-
-    spdlog::error("[{}:{}] {}: vulkan result error", path, line, function);
-}
-
-#define CHECK_RESULT(result) check_vulkan_result( \
-    std::source_location::current().file_name(),  \
-    std::source_location::current().line(),       \
-    std::source_location::current().function_name(), result)
 
 NAMESPACE_BEGIN(runtime)
 NAMESPACE_BEGIN(rhi)
@@ -63,97 +41,6 @@ auto vulkan::initialize(window_system* window) -> const char*
     create_pipeline();
 
     return nullptr;
-}
-
-auto vulkan::create_instance_and_device() -> void
-{
-    VkResult result;
-    // volk do: init, load instance and device
-    result = volkInitialize();
-    CHECK_RESULT(result);
-
-    vkb::InstanceBuilder builder;
-
-    auto inst_ret = builder.set_app_name(Engine::NAME)
-                        .request_validation_layers(true)
-                        .require_api_version(1, 3, 0)
-                        .use_default_debug_messenger()
-                        .build();
-    if (!inst_ret)
-    {
-        spdlog::error("Failed to create Vulkan instance. Error: {}", inst_ret.error().message());
-        exit(-1);
-    }
-
-    vkb::Instance vkb_inst = inst_ret.value();
-
-    instance = vkb_inst.instance;
-    debug_messenger = vkb_inst.debug_messenger;
-    volkLoadInstance(instance);
-
-    result = glfwCreateWindowSurface(instance, window->get_window(), nullptr, &surface);
-    CHECK_RESULT(result);
-
-    vkb::PhysicalDeviceSelector selector{vkb_inst};
-
-    auto phys_ret = selector.set_minimum_version(1, 3)
-                        .set_surface(surface)
-                        .select();
-    if (!phys_ret)
-    {
-        spdlog::error("Failed to select Vulkan Physical Device. Error: {}", phys_ret.error().message());
-        clean();
-        exit(-1);
-    }
-
-    vkb::DeviceBuilder device_builder{phys_ret.value()};
-    // automatically propagate needed data from instance & physical device
-    auto dev_ret = device_builder.build();
-    if (!dev_ret)
-    {
-        spdlog::error("Failed to create Vulkan device. Error: {}", dev_ret.error().message());
-        clean();
-        exit(-1);
-    }
-
-    vkb::Device vkb_device = dev_ret.value();
-
-    gpu = vkb_device.physical_device;
-    device = vkb_device.device;
-    graphics_queue = vkb_device.get_queue(vkb::QueueType::graphics).value();
-    graphics_queue_family = vkb_device.get_queue_index(vkb::QueueType::graphics).value();
-    present_queue = vkb_device.get_queue(vkb::QueueType::present).value();
-    present_queue_family = vkb_device.get_queue_index(vkb::QueueType::present).value();
-
-    volkLoadDevice(device);
-}
-
-auto vulkan::create_swapchain(uint32_t width, uint32_t height) -> void
-{
-    const auto old_swapchain = swapchain.self;
-    extent = {width, height};
-
-    vkb::SwapchainBuilder swapchain_builder{gpu, device, surface};
-
-    auto swap_ret = swapchain_builder
-                        .use_default_format_selection()
-                        // use vsync present mode
-                        .set_desired_present_mode(VK_PRESENT_MODE_FIFO_KHR)
-                        .set_desired_extent(extent.width, extent.height)
-                        .set_old_swapchain(old_swapchain)
-                        .build();
-
-    if (!swap_ret)
-    {
-        spdlog::error("Failed to create swapchain. Error: {}", swap_ret.error().message());
-        exit(-1);
-    }
-
-    auto vkb_swapchain = swap_ret.value();
-    swapchain.self = vkb_swapchain.swapchain;
-    swapchain.format = vkb_swapchain.image_format;
-    swapchain.images = vkb_swapchain.get_images().value();
-    swapchain.image_views = vkb_swapchain.get_image_views().value();
 }
 
 auto vulkan::create_command_pool() -> void
@@ -245,9 +132,72 @@ auto vulkan::create_framebuffers() -> void
 
 auto vulkan::create_pipeline() -> void
 {
-    io::println("shader size");
-    io::println(shader::vs.size());
-    io::println(shader::fs.size());
+    const auto input_assembly = vk_create_info::pipeline_input_assembly_state(
+        VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, 0, VK_FALSE);
+
+    const auto rasterization = vk_create_info::pipeline_rasterization_state(
+        VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE, 0);
+
+    const auto color_blend_attachment = vk_create_info::pipeline_color_blend_attachment_state(
+        0b1111, VK_FALSE);
+
+    const auto color_blend_state = vk_create_info::pipeline_color_blend_state(
+        1, &color_blend_attachment);
+
+    const auto depth_stencil = vk_create_info::pipeline_depth_stencil_state();
+    const auto viewport_state = vk_create_info::pipeline_viewport_state(
+        1, 1, 0);
+
+    const auto multisample = vk_create_info::pipeline_multisample_state(
+        VK_SAMPLE_COUNT_1_BIT);
+
+    const auto dynamic_states = std::array<VkDynamicState, 2>{
+        VK_DYNAMIC_STATE_VIEWPORT,
+        VK_DYNAMIC_STATE_SCISSOR};
+    const auto dynamic_state = vk_create_info::pipeline_dynamic_state(
+        dynamic_states.data(), dynamic_states.size());
+
+    auto pipeline_info = vk_create_info::pipeline();
+    pipeline_info.pInputAssemblyState = &input_assembly;
+    pipeline_info.pViewportState = &viewport_state;
+    pipeline_info.pRasterizationState = &rasterization;
+    pipeline_info.pMultisampleState = &multisample;
+    pipeline_info.pDepthStencilState = &depth_stencil;
+    pipeline_info.pColorBlendState = &color_blend_state;
+    pipeline_info.pDynamicState = &dynamic_state;
+    pipeline_info.subpass = 0;
+
+    VkResult result;
+    auto vs_shader_code = shader_module{device};
+    auto fs_shader_code = shader_module{device};
+
+    result = vs_shader_code.create(shader::vs);
+    CHECK_RESULT(result);
+    result = fs_shader_code.create(shader::fs);
+    CHECK_RESULT(result);
+
+    auto shader_stages = std::array<VkPipelineShaderStageCreateInfo, 2>{
+        vk_create_info::pipeline_shader_state(VK_SHADER_STAGE_VERTEX_BIT, vs_shader_code.get()),
+        vk_create_info::pipeline_shader_state(VK_SHADER_STAGE_FRAGMENT_BIT, fs_shader_code.get())};
+
+    auto vertex_input = vk_create_info::pipeline_vertex_input_state();
+    vertex_input.vertexBindingDescriptionCount = 0;
+    vertex_input.pVertexBindingDescriptions = nullptr; // Optional
+    vertex_input.vertexAttributeDescriptionCount = 0;
+    vertex_input.pVertexAttributeDescriptions = nullptr; // Optional
+
+    pipeline_info.stageCount = static_cast<uint32_t>(shader_stages.size());
+    pipeline_info.pStages = shader_stages.data();
+
+    VkPipeline pipeline;
+    result = vkCreateGraphicsPipelines(
+        device, VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &pipeline);
+    CHECK_RESULT(result);
+}
+
+auto vulkan::create_sync() -> void
+{
+    // vk_create_info::semaphore();
 }
 
 auto vulkan::window_resize() -> void
