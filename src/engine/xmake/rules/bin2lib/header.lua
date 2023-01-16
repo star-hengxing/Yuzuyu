@@ -3,9 +3,7 @@ local function header_codegen(output, namespace, sourcebatch)
     output:printf("#pragma once\n#include <string_view>\n")
     output:printf("#if defined(_WIN32) && defined(LIBRARY_DLL)\n")
     output:printf("#define LIBRARY_IMPORT __declspec(dllimport)\n")
-    output:printf("#else\n")
-    output:printf("#define LIBRARY_IMPORT\n")
-    output:printf("#endif\n")
+    output:printf("#else\n#define LIBRARY_IMPORT\n#endif\n")
     output:printf(string.format("namespace %s\n{\n", namespace))
 
     for _, sourcefile in ipairs(sourcebatch.sourcefiles) do

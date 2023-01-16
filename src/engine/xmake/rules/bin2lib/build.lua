@@ -56,8 +56,6 @@ rule("bin2lib.build")
     add_deps("glsl2spv", {order = true})
     -- compile spv2cpp
     add_deps("c++")
-    -- inherit links and linkdirs of all dependent targets by default
-    add_deps("utils.inherit.links")
 
     on_buildcmd_file(function (target, batchcmds, sourcefile, opt)
         import("core.base.bytes")
@@ -86,7 +84,6 @@ rule("bin2lib.build")
         table.insert(target:objectfiles(), objectfile)
         -- compile spv.cpp
         batchcmds:show_progress(opt.progress, "${color.build.object}compiling.spv.cpp %s", cppfile)
-        batchcmds:mkdir(path.directory(cppfile))
         batchcmds:compile(cppfile, objectfile)
         -- add deps
         batchcmds:add_depfiles(sourcefile)
