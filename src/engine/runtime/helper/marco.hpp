@@ -14,13 +14,10 @@
 #define ALWAYS_INLINE [[gnu::always_inline]]
 #endif
 
-#ifdef _WIN32
-#ifdef LIBRARY_EXPORT
-#define LIBRARY_API __declspec(dllexport)
+#if defined(_WIN32) && defined(LIBRARY_DLL)
+#define LIBRARY_EXPORT __declspec(dllexport)
+#define LIBRARY_IMPORT __declspec(dllimport)
 #else
-#define LIBRARY_API
-// #define LIBRARY_API __declspec(dllimport)
-#endif
-#else
-#define LIBRARY_API
+#define LIBRARY_EXPORT
+#define LIBRARY_IMPORT
 #endif
