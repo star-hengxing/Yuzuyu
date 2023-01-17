@@ -6,24 +6,31 @@ add_requires(
     "spdlog" -- log
 )
 
-includes("engine")
+includes("runtime")
+includes("xmake")
 
-target("yuzuyu")
-    set_kind("binary")
-    add_files("main.cpp")
+add_includedirs(path.join("$(projectdir)", "src"), {public = true})
 
-    add_deps("runtime")
+target("runtime")
+    set_kind("$(kind)")
+    add_rules("module")
+    add_files("runtime/Game.cpp")
+
+    add_deps("rhi", "io")
     add_packages("spdlog")
-
-    set_rundir("$(projectdir)")
-
-    -- after_build(after_build_run)
 target_end()
 
-local function after_build_run(target)
-    -- os.exec("xmake lua src/engine/xmake/utils/archive.lua")
-    local rundir = target:rundir()
-    local targetfile = path.absolute(target:targetfile())
-    local args = table.wrap(target:get("runargs"))
-    os.execv(targetfile, args, {curdir = rundir})
-end
+target("Game")
+    set_kind("binary")
+    add_files("runtime/main.cpp")
+    add_deps("runtime")
+    set_rundir("$(projectdir)")
+
+    on_load(function (target)
+        -- remove console
+        if is_mode("release") and is_plat("windows") then
+            target:add("ldflags", "/SUBSYSTEM:WINDOWS")
+            target:add("ldflags", "/ENTRY:mainCRTStartup", {force = true})
+        end
+    end)
+target_end()

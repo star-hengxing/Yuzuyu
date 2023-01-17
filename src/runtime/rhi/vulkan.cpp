@@ -38,7 +38,7 @@ auto vulkan::initialize(window_system* window) -> const char*
     create_command_pool();
     create_command_buffer();
 
-    create_pipeline();
+    // create_pipeline();
 
     return nullptr;
 }

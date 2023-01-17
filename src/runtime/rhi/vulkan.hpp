@@ -67,6 +67,7 @@ private:
     auto window_resize() -> void;
 
 public:
+    ~vulkan() { clean(); }
     // if success return null pointer, otherwise return the error message string
     [[nodiscard]] auto initialize(window_system* window) -> const char*;
 

@@ -41,7 +41,7 @@ auto vulkan::create_instance_and_device() -> void
 
     vkb::InstanceBuilder builder;
 
-    auto inst_ret = builder.set_app_name(Engine::NAME)
+    auto inst_ret = builder.set_app_name(Game::NAME)
                         .request_validation_layers(true)
                         .require_api_version(1, 3, 0)
                         .use_default_debug_messenger()

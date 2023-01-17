@@ -21,6 +21,10 @@ private:
 
 public:
     window_system() {}
+    ~window_system()
+    {
+        clean();
+    }
     // if success return null pointer, otherwise return the error message string
     [[nodiscard]]
     auto initialize(usize width, usize height, const char* title) -> const char*;
@@ -32,17 +36,17 @@ public:
     {
         while (!glfwWindowShouldClose(window))
         {
-            glfwPollEvents();
             f();
         }
     }
 
-    auto clean() const -> void
+    auto clean() -> void
     {
         if (window)
         {
             glfwDestroyWindow(window);
             glfwTerminate();
+            window = nullptr;
         }
     }
 
@@ -62,6 +66,21 @@ public:
     auto get_window_size() const -> std::tuple<usize, usize>
     {
         return {width, height};
+    }
+
+    template <typename F>
+    requires requires(F f, GLFWwindow* window, int key, int scancode, int action, int mods)
+    {
+        { f(window, key, scancode, action, mods) } -> std::same_as<void>;
+    }
+    auto set_key_callback(F f) -> void
+    {
+        glfwSetKeyCallback(window, f);
+    }
+
+    auto close_window() -> void
+    {
+        glfwSetWindowShouldClose(window, true);
     }
 };
 
