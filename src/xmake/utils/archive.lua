@@ -20,7 +20,6 @@ function main()
     table.insert(args, "-xr!.vscode/")
     table.insert(args, "-xr!.xmake/")
     table.insert(args, "-xr!build/")
-    table.insert(args, "-xr!" .. outputfile)
 
     cprint("${green}archiveing " .. outputfile)
     os.runv(tool.program, args)

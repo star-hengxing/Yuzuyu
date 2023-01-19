@@ -1,11 +1,3 @@
-add_requires(
-    -- vulkan
-    "volk",
-    "vk-bootstrap v0.6",
-    "glfw", -- window
-    "spdlog" -- log
-)
-
 includes("runtime")
 includes("xmake")
 
