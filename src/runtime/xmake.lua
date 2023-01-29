@@ -5,6 +5,8 @@ target("io")
     set_kind("$(kind)")
     add_rules("module")
     add_files("io/*.cpp")
+
+    add_packages("fast_io", {public = true})
 target_end()
 
 target("window")
@@ -13,6 +15,7 @@ target("window")
     add_files("window/*.cpp")
     add_defines("GLFW_INCLUDE_VULKAN")
 
+    add_packages("fast_io")
     add_packages("glfw", "libsdl", "volk", {public = true})
 target_end()
 

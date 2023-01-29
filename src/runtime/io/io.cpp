@@ -1,28 +1,28 @@
 #ifdef USE_MODULES
-import <fstream>;
+import <string_view>;
 #else
-#include <fstream>
+#include <string_view>
 #endif
 
+#include <fast_io.h>
+
+#include <runtime/helper/range.hpp>
 #include "io.hpp"
 
 NAMESPACE_BEGIN(io)
 NAMESPACE_BEGIN(file)
 
 // TODO: async read
-auto read(const char* filename) -> std::tuple<std::unique_ptr<char[]>, usize>
+auto read_to_buffer(const char* filename) -> fixed_buffer
 {
-    std::ifstream in(filename, std::ios::ate | std::ios::binary);
-    if (in.fail()) return {nullptr, 0};
-
-    const usize size = in.tellg();
-    in.seekg(0, std::ios::beg);
-    // avoid set 0
-    auto buffer = std::unique_ptr<char[]>(new char[size]);
-    in.read(buffer.get(), size);
-
-    in.close();
-    return {std::move(buffer), size};
+    const auto file = fast_io::native_file_loader{std::string_view{filename}};
+    const auto size = file.size();
+    auto buffer = new char[size];
+    for (auto i : range(size))
+    {
+        buffer[i] = file[i];
+    }
+    return {Owned<char[]>{buffer}, size};
 }
 
 NAMESPACE_END(file)

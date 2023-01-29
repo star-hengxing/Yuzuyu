@@ -6,3 +6,5 @@ add_requires("glfw")
 add_requires("libsdl")
 -- log
 add_requires("spdlog")
+-- i/o
+add_requires("fast_io")

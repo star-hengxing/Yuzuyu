@@ -1,34 +1,19 @@
 #pragma once
 
-#ifdef USE_MODULES
-import <iostream>;
-import <memory>;
-import <tuple>;
-#else
-#include <iostream>
-#include <memory>
-#include <tuple>
-#endif
-
+#include <runtime/helper/Owned.hpp>
 #include <runtime/helper/basic.hpp>
 
 NAMESPACE_BEGIN(io)
-
-template <typename... Args>
-auto println(const Args&... args) -> void
-{
-    ((std::cout << args << '\n'), ...);
-}
-
-template <typename... Args>
-auto print(const Args&... args) -> void
-{
-    ((std::cout << args << ' '), ...);
-}
-
 NAMESPACE_BEGIN(file)
-// read all data
-auto read(const char* filename) -> std::tuple<std::unique_ptr<char[]>, usize>;
+
+struct fixed_buffer
+{
+    Owned<char[]> data;
+    usize size;
+};
+
+// read all data to buffer
+auto read_to_buffer(const char* filename) -> fixed_buffer;
 
 NAMESPACE_END(file)
 NAMESPACE_END(io)

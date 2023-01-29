@@ -1,5 +1,6 @@
+#include <fast_io.h>
+
 #include <runtime/helper/range.hpp>
-#include <runtime/io/io.hpp>
 #include "sdl.hpp"
 
 NAMESPACE_BEGIN(runtime)
@@ -103,7 +104,7 @@ auto sdl_system::present(void* framebuffer) -> void
 
     if (result != 0)
     {
-        io::println(SDL_GetError());
+        perrln(SDL_GetError());
     }
 }
 

@@ -12,8 +12,11 @@ template <typename T>
 struct Owned
 {
 private:
-    using value_type = T;
-    using pointer = T*;
+    using value_type = std::remove_all_extents_t<T>;
+    using pointer = value_type*;
+    using reference = value_type&;
+    using const_pointer = const value_type*;
+    using const_reference = const value_type&;
     using Self = Owned;
 
 private:
@@ -29,15 +32,15 @@ public:
     Owned<T>& operator = (const Owned<T>&) = delete;
 
     template <typename T2>
-    Owned(Owned<T2>&& Owned) noexcept : ptr(Owned.ptr)
+    Owned(Owned<T2>&& box) noexcept : ptr(box.ptr)
     {
-        Owned.ptr = nullptr;
+        box.ptr = nullptr;
     }
 
     template <typename T2>
-    auto operator = (Owned<T2>&& Owned) noexcept -> Self&
+    auto operator = (Owned<T2>&& box) noexcept -> Self&
     {
-        Owned(std::move(Owned)).swap(*this);
+        Owned(std::move(box)).swap(*this);
         return *this;
     }
 
@@ -45,22 +48,34 @@ public:
     {
         if(ptr != nullptr)
         {
-            delete ptr;
+            if constexpr (std::is_array_v<T>)
+                delete[] ptr;
+            else
+                delete ptr;
+
             ptr = nullptr;
         }
     }
 
     template <typename... Args>
+    requires (!std::is_array_v<T>)
     static auto make(Args&&... args) -> Self
     {
-        return {new T{std::forward<Args>(args)...}};
+        return {new value_type{std::forward<Args>(args)...}};
+    }
+
+    template <typename T2 = T>
+    requires std::is_array_v<T>
+    static auto make(size_t size) -> Self
+    {
+        return {new value_type[size]{}};
     }
 
     template <typename T2>
-    auto swap(Owned<T2>& Owned) -> void
+    auto swap(Owned<T2>& box) -> void
     {
         using std::swap;
-        swap(ptr, Owned.ptr);
+        swap(ptr, box.ptr);
     }
 
     auto get() const noexcept -> pointer
@@ -75,14 +90,28 @@ public:
         return tmp;
     }
 
+    template <typename T2 = T>
+    requires std::is_array_v<T>
+    auto operator [] (size_t index) noexcept -> reference
+    {
+        return ptr[index];
+    }
+
+    template <typename T2 = T>
+    requires std::is_array_v<T>
+    auto operator [] (size_t index) const noexcept -> value_type
+    {
+        return ptr[index];
+    }
+
     auto operator * () const noexcept -> value_type
     {
-        return *get();
+        return *ptr;
     }
 
     auto operator -> () const noexcept -> pointer
     {
-        return get();
+        return ptr;
     }
 
     operator bool () const noexcept
