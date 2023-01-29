@@ -1,3 +1,4 @@
+includes("cpu")
 includes("shader")
 
 target("io")
@@ -12,7 +13,7 @@ target("window")
     add_files("window/*.cpp")
     add_defines("GLFW_INCLUDE_VULKAN")
 
-    add_packages("glfw", "volk", {public = true})
+    add_packages("glfw", "libsdl", "volk", {public = true})
 target_end()
 
 target("rhi")

@@ -5,7 +5,6 @@ import <source_location>;
 #endif
 
 #include <volk.h>
-#include <GLFW/glfw3.h>
 #include <VkBootstrap.h>
 #include <spdlog/spdlog.h>
 
@@ -57,9 +56,11 @@ auto vulkan::create_instance_and_device() -> void
     instance = vkb_inst.instance;
     debug_messenger = vkb_inst.debug_messenger;
     volkLoadInstance(instance);
-
-    result = glfwCreateWindowSurface(instance, window->get_window(), nullptr, &surface);
-    CHECK_RESULT(result);
+    surface = window->create_surface(instance);
+    if (surface == nullptr)
+    {
+        spdlog::error("Failed to create window surface");
+    }
 
     vkb::PhysicalDeviceSelector selector{vkb_inst};
 
