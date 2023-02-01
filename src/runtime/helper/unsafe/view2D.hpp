@@ -42,14 +42,14 @@ public:
         return &ptr[width * height];
     }
 
-    auto get(usize w, usize h) const noexcept -> value_type
+    auto get(usize x, usize y) const noexcept -> value_type
     {
-        return ptr[w + h * width];
+        return ptr[x + y * width];
     }
 
-    auto set(usize w, usize h, const value_type& value) noexcept -> Self&
+    auto set(usize x, usize y, const value_type& value) noexcept -> Self&
     {
-        ptr[w + h * width] = value;
+        ptr[x + y * width] = value;
         return *this;
     }
 

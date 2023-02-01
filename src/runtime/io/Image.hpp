@@ -16,6 +16,7 @@ struct Image
 {
 public:
     using type = Color;
+    using view = unsafe::view2D<type>;
 
 private:
     Owned<type[]> data;
@@ -27,9 +28,11 @@ public:
         data(data), width(width), height(height)
     {}
 
+    auto resize(u32 width, u32 height) -> void;
+
     auto write(const std::string_view filename) const -> void;
 
-    auto get_view() const noexcept -> unsafe::view2D<type>;
+    auto get_view() const noexcept -> view;
 };
 
 NAMESPACE_BEGIN(io)

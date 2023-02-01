@@ -8,6 +8,8 @@ import <string>;
 #include <stb_image.h>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
+#include <stb_image_resize.h>
 #include <fast_io.h>
 
 #include <runtime/helper/range.hpp>
@@ -18,9 +20,26 @@ auto Image::write(const std::string_view filename) const -> void
     io::file::write_image(filename, reinterpret_cast<u8*>(data.get()), width, height);
 }
 
-auto Image::get_view() const noexcept -> unsafe::view2D<type>
+auto Image::get_view() const noexcept -> view
 {
     return {data.get(), width, height};
+}
+
+auto Image::resize(u32 width, u32 height) -> void
+{
+    auto data = Owned<type[]>(new type[width * height]);
+    int result = stbir_resize_uint8(
+        reinterpret_cast<u8*>(this->data.get()), this->width, this->height,
+        0, reinterpret_cast<u8*>(data.get()), width, height, 0, 4);
+    // success
+    if (result == 1)
+    {
+        data.swap(this->data);
+        this->width = width;
+        this->height = height;
+        return;
+    }
+    perr("Failed to resize image");
 }
 
 NAMESPACE_BEGIN(io)
