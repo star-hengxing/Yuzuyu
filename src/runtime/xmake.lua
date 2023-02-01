@@ -6,7 +6,8 @@ target("io")
     add_rules("module")
     add_files("io/*.cpp")
 
-    add_packages("fast_io", {public = true})
+    add_packages("fast_io", "stb")
+    add_packages("expected", {public = true})
 target_end()
 
 target("window")

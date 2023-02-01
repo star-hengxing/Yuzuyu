@@ -8,3 +8,7 @@ add_requires("libsdl")
 add_requires("spdlog")
 -- i/o
 add_requires("fast_io")
+-- image i/o
+add_requires("stb")
+-- erro handle
+add_requires("tl_expected master", {alias = "expected"})
