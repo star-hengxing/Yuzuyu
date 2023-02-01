@@ -1,3 +1,5 @@
+-- dev
+
 -- vulkan
 add_requires("volk")
 add_requires("vk-bootstrap v0.6")
@@ -12,3 +14,8 @@ add_requires("fast_io")
 add_requires("stb")
 -- erro handle
 add_requires("tl_expected master", {alias = "expected"})
+
+-- test
+if has_config("test") then
+    add_requires("doctest")
+end

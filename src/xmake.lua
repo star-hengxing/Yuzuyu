@@ -1,6 +1,10 @@
 includes("runtime")
 includes("xmake")
 
+if has_config("test") then
+    includes("test")
+end
+
 add_includedirs(path.join("$(projectdir)", "src"), {public = true})
 
 target("runtime")
@@ -9,7 +13,7 @@ target("runtime")
     add_files("runtime/Game.cpp")
 
     add_deps("rhi", "io")
-    add_packages("spdlog")
+    add_packages("spdlog", "fast_io")
 target_end()
 
 target("Game")

@@ -1,5 +1,11 @@
 #pragma once
 
+#ifdef USE_MODULES
+import <string_view>;
+#else
+#include <string_view>
+#endif
+
 #include <runtime/helper/Owned.hpp>
 #include <runtime/helper/basic.hpp>
 
@@ -13,7 +19,7 @@ struct fixed_buffer
 };
 
 // read all data to buffer
-auto read_to_buffer(const char* filename) -> fixed_buffer;
+auto read_to_buffer(const std::string_view filename) -> fixed_buffer;
 
 NAMESPACE_END(file)
 NAMESPACE_END(io)

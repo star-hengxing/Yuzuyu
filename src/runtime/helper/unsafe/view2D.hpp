@@ -32,6 +32,11 @@ public:
         return ptr;
     }
 
+    auto size() const noexcept -> usize
+    {
+        return width * height;
+    }
+
     auto end() noexcept -> pointer
     {
         return &ptr[width * height];

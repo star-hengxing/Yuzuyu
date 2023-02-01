@@ -1,9 +1,3 @@
-#ifdef USE_MODULES
-import <string_view>;
-#else
-#include <string_view>
-#endif
-
 #include <fast_io.h>
 
 #include <runtime/helper/range.hpp>
@@ -13,9 +7,9 @@ NAMESPACE_BEGIN(io)
 NAMESPACE_BEGIN(file)
 
 // TODO: async read
-auto read_to_buffer(const char* filename) -> fixed_buffer
+auto read_to_buffer(const std::string_view filename) -> fixed_buffer
 {
-    const auto file = fast_io::native_file_loader{std::string_view{filename}};
+    const auto file = fast_io::native_file_loader{filename};
     const auto size = file.size();
     auto buffer = new char[size];
     for (auto i : range(size))

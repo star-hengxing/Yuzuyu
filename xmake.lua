@@ -12,6 +12,12 @@ option("modules")
     set_description("Enable c++20 stl header units (default: false)")
 option_end()
 
+option("test")
+    set_default(false)
+    set_showmenu(true)
+    set_description("Enable test (default: false)")
+option_end()
+
 add_rules("mode.debug", "mode.releasedbg", "mode.release")
 
 if is_mode("debug") then
