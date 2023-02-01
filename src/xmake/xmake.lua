@@ -1,6 +1,8 @@
 -- third party libraries
 includes("package.lua")
--- project module build
+-- project option
+includes("option.lua")
+-- project module config
 includes("rules/module.lua")
 -- shader
 includes("rules/glsl2spv.lua")
