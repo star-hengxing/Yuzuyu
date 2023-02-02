@@ -2,7 +2,7 @@ target("cpu")
     set_kind("binary")
     add_files("**.cpp")
 
-    add_deps("window")
+    add_deps("window", "io")
     add_packages("fast_io")
 
     set_rundir("$(projectdir)")

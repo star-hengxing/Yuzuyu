@@ -3,11 +3,31 @@
 #include <runtime/helper/range.hpp>
 #include "Renderer.hpp"
 
+NAMESPACE_BEGIN()
+
+auto color_blend(const Color back, const Color front, f32 alpha) -> Color
+{
+    const auto back_ = rgb_to_float<f32>(back);
+    const auto front_ = rgb_to_float<f32>(front);
+
+    return float_to_rgb(front_ * alpha + back_ * (1 - alpha));
+}
+
+NAMESPACE_END()
+
+NAMESPACE_BEGIN(render)
+
+auto Renderer::initialize(u16 width, u16 height) -> void
+{
+    framebuffer = Owned<Color[]>{new Color[width * height]};
+    framebuffer_view = {framebuffer.get(), width, height};
+}
+
 auto Renderer::draw_pixel(type x, type y, Color color) -> void
 {
-    if (x < framebuffer.width && y < framebuffer.height)
+    if (x < framebuffer_view.width && y < framebuffer_view.height)
     {
-        framebuffer.set(x, y, color);
+        framebuffer_view.set(x, y, color);
     }
 }
 // bresenham
@@ -106,17 +126,60 @@ auto Renderer::draw_line(type x1, type y1, type x2, type y2, Color color) -> voi
 
 auto Renderer::draw_rectangle(type x1, type y1, type x2, type y2, Color color) -> void
 {
-    if (x1 >= framebuffer.width || x2 >= framebuffer.width ||
-        y1 >= framebuffer.height || y2 >= framebuffer.height)
+    if (x1 >= framebuffer_view.width || x2 >= framebuffer_view.width || y1 >= framebuffer_view.height || y2 >= framebuffer_view.height)
     {
         return;
     }
-    // draw_line(x1, y1, x2, y1, color);
+
     for (auto y : range(y1, y2))
     {
         for (auto x : range(x1, x2))
         {
-            draw_pixel(x, y, color);
+            framebuffer_view.set(x, y, color);
         }
     }
 }
+
+auto Renderer::clear(const Color color) -> void
+{
+    framebuffer_view.fill(color);
+}
+
+auto Renderer::clear(const view_type view) -> void
+{
+    const auto [ptr, width, height] = view;
+    if (width != framebuffer_view.width || height != framebuffer_view.height)
+        return;
+
+    for (auto i : range(width * height))
+    {
+        framebuffer_view.ptr[i] = ptr[i];
+    }
+}
+
+auto Renderer::draw(const draw_config& config) -> void
+{
+    const auto [x1, y1, x2, y2, opacity, color] = config;
+
+    for (auto y : range(y1, y2))
+    {
+        for (auto x : range(x1, x2))
+        {
+            Color pixel_color;
+            if (opacity == 1.0)
+            {
+                pixel_color = color;
+            }
+            else
+            {
+                const auto front = color;
+                const auto back = framebuffer_view.get(x, y);
+                pixel_color = color_blend(back, front, opacity);
+            }
+
+            draw_pixel(x, y, pixel_color);
+        }
+    }
+}
+
+NAMESPACE_END(render)
