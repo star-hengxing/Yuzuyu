@@ -32,7 +32,7 @@ public:
         return ptr;
     }
 
-    auto size() const noexcept -> usize
+    auto size() const noexcept -> size_type
     {
         return width * height;
     }

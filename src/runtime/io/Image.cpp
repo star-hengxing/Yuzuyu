@@ -25,7 +25,7 @@ auto Image::get_view() const noexcept -> view
     return {data.get(), width, height};
 }
 
-auto Image::resize(u32 width, u32 height) -> void
+auto Image::resize(u16 width, u16 height) -> void
 {
     auto data = Owned<type[]>(new type[width * height]);
     int result = stbir_resize_uint8(
@@ -60,7 +60,7 @@ auto read_to_image(const std::string_view filename) -> tl::expected<Image, std::
         return tl::make_unexpected(std::move(info));
     }
 
-    auto image = Image{new Image::type[w * h], static_cast<u32>(w), static_cast<u32>(h)};
+    auto image = Image{new Image::type[w * h], static_cast<u16>(w), static_cast<u16>(h)};
     auto view = image.get_view();
 
     if (channel == 4)
@@ -85,7 +85,7 @@ auto read_to_image(const std::string_view filename) -> tl::expected<Image, std::
     return {std::move(image)};
 }
 
-auto write_image(const std::string_view filename, const u8* data, u32 width, u32 height) -> void
+auto write_image(const std::string_view filename, const u8* data, u16 width, u16 height) -> void
 {
     if (filename.ends_with(".png"))
     {
