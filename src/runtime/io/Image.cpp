@@ -15,9 +15,9 @@ import <string>;
 #include <runtime/helper/range.hpp>
 #include "Image.hpp"
 
-auto Image::write(const std::string_view filename) const -> void
+auto Image::write(const std::string_view filename) const -> std::string
 {
-    io::file::write_image(filename, reinterpret_cast<u8*>(data.get()), width, height);
+    return io::file::write_image(filename, reinterpret_cast<u8*>(data.get()), width, height);
 }
 
 auto Image::get_view() const noexcept -> view
@@ -25,21 +25,23 @@ auto Image::get_view() const noexcept -> view
     return {data.get(), width, height};
 }
 
-auto Image::resize(u16 width, u16 height) -> void
+auto Image::resize(u16 width, u16 height) -> std::string
 {
     auto data = Owned<type[]>(new type[width * height]);
     int result = stbir_resize_uint8(
         reinterpret_cast<u8*>(this->data.get()), this->width, this->height,
         0, reinterpret_cast<u8*>(data.get()), width, height, 0, 4);
-    // success
-    if (result == 1)
+    // error
+    if (result == 0)
     {
-        data.swap(this->data);
-        this->width = width;
-        this->height = height;
-        return;
+        return fast_io::concat<std::string>(
+            "Failed to resize image\n", stbi_failure_reason());
     }
-    perr("Failed to resize image");
+
+    data.swap(this->data);
+    this->width = width;
+    this->height = height;
+    return {};
 }
 
 NAMESPACE_BEGIN(io)
@@ -56,7 +58,8 @@ auto read_to_image(const std::string_view filename) -> tl::expected<Image, std::
 
     if (!buffer)
     {
-        const auto info = fast_io::concat<std::string>("Failed read ", filename);
+        const auto info = fast_io::concat<std::string>(
+            "Failed to read ", filename, "\n", stbi_failure_reason());
         return tl::make_unexpected(std::move(info));
     }
 
@@ -79,38 +82,48 @@ auto read_to_image(const std::string_view filename) -> tl::expected<Image, std::
     }
     else
     {
-        perr("No support image channel!\n");
+        return tl::make_unexpected("No support image channel!\n");
     }
 
     return {std::move(image)};
 }
 
-auto write_image(const std::string_view filename, const u8* data, u16 width, u16 height) -> void
+auto write_image(const std::string_view filename, const u8* data, u16 width, u16 height)
+    -> std::string
 {
+    int error;
     if (filename.ends_with(".png"))
     {
-        stbi_write_png(filename.data(), width, height, 4, data, 0);
+        error = stbi_write_png(filename.data(), width, height, 4, data, 0);
     }
     else if (filename.ends_with(".jpg"))
     {
-        stbi_write_jpg(filename.data(), width, height, 4, data, 0);
+        error = stbi_write_jpg(filename.data(), width, height, 4, data, 0);
     }
     else if (filename.ends_with(".ppm"))
     {
         // TODO: https://en.wikipedia.org/wiki/Time-of-check_to_time-of-use
         auto file = fast_io::native_file{filename, fast_io::open_mode::out};
         // P3 string format, P6 binary format, default P3
+        // 255 mean: 8 bit color
+        // P3
+        // width height
+        // 255
         print(file, "P3\n", width, " ", height, "\n255\n");
         for (auto i : range(width * height))
         {
             const auto index = i * 4;
+            // r g b
             println(file, data[index], " ", data[index + 1], " ", data[index + 2]);
         }
+        return {};
     }
     else
     {
-        perr("No support format!\n");
+        return "No support image format!";
     }
+
+    return (error == 1) ? "" : stbi_failure_reason();
 }
 
 NAMESPACE_END(file)

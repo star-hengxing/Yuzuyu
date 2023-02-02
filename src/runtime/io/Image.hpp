@@ -25,12 +25,12 @@ private:
 public:
     // get data ownership
     Image(type* data, u16 width, u16 height) :
-        data(data), width(width), height(height)
-    {}
+        data(data), width(width), height(height) {}
 
-    auto resize(u16 width, u16 height) -> void;
-
-    auto write(const std::string_view filename) const -> void;
+    [[nodiscard]]
+    auto resize(u16 width, u16 height) -> std::string;
+    [[nodiscard]]
+    auto write(const std::string_view filename) const -> std::string;
 
     auto get_view() const noexcept -> view;
 };
@@ -38,9 +38,12 @@ public:
 NAMESPACE_BEGIN(io)
 NAMESPACE_BEGIN(file)
 
+// if error, return error message
 auto read_to_image(const std::string_view filename) -> tl::expected<Image, std::string>;
-// hardcode: rgba 8-bit
-auto write_image(const std::string_view filename, const u8* data, u16 width, u16 height) -> void;
+// hardcode: rgba 8-bit.
+// if error, return error message
+auto write_image(const std::string_view filename, const u8* data, u16 width, u16 height)
+    -> std::string;
 
 NAMESPACE_END(file)
 NAMESPACE_END(io)
