@@ -58,6 +58,9 @@ auto sdl_system::initialize(const Config& config) -> const char*
         return SDL_GetError();
     }
 
+    this->width = config.width;
+    this->height = config.height;
+
     surface = SDL_GetWindowSurface(window);
     return nullptr;
 }
