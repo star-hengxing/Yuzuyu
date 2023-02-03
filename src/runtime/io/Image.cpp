@@ -27,21 +27,32 @@ auto Image::get_view() const noexcept -> view
 
 auto Image::resize(u16 width, u16 height) -> std::string
 {
-    auto data = Owned<type[]>(new type[width * height]);
-    int result = stbir_resize_uint8(
+    auto tmp = Image::create(width, height);
+    const int result = stbir_resize_uint8(
         reinterpret_cast<u8*>(this->data.get()), this->width, this->height,
-        0, reinterpret_cast<u8*>(data.get()), width, height, 0, 4);
-    // error
+        0, reinterpret_cast<u8*>(tmp.data.get()), width, height, 0, 4);
+
     if (result == 0)
     {
         return fast_io::concat<std::string>(
             "Failed to resize image\n", stbi_failure_reason());
     }
-
-    data.swap(this->data);
-    this->width = width;
-    this->height = height;
+    // get resized image
+    this->swap(tmp);
     return {};
+}
+
+auto Image::swap(Image& other) noexcept -> void
+{
+    using std::swap;
+    data.swap(other.data);
+    swap(width, other.width);
+    swap(height, other.height);
+}
+
+auto Image::create(u16 width, u16 height) -> Image
+{
+    return {new type[width * height], width, height};
 }
 
 NAMESPACE_BEGIN(io)
@@ -63,7 +74,7 @@ auto read_to_image(const std::string_view filename) -> tl::expected<Image, std::
         return tl::make_unexpected(std::move(info));
     }
 
-    auto image = Image{new Image::type[w * h], static_cast<u16>(w), static_cast<u16>(h)};
+    auto image = Image::create(w, h);
     auto view = image.get_view();
 
     if (channel == 4)

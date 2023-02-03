@@ -33,6 +33,10 @@ public:
     auto write(const std::string_view filename) const -> std::string;
 
     auto get_view() const noexcept -> view;
+
+    auto swap(Image& other) noexcept -> void;
+
+    static auto create(u16 width, u16 height) -> Image;
 };
 
 NAMESPACE_BEGIN(io)
