@@ -6,6 +6,8 @@ import <string_view>;
 #include <string_view>
 #endif
 
+#include <tl/expected.hpp>
+
 #include <runtime/helper/Owned.hpp>
 #include <runtime/helper/basic.hpp>
 
@@ -19,7 +21,7 @@ struct fixed_buffer
 };
 
 // read all data to buffer
-auto read_to_buffer(const std::string_view filename) -> fixed_buffer;
+auto read_to_buffer(const std::string_view filename) -> tl::expected<fixed_buffer, std::string>;
 
 NAMESPACE_END(file)
 NAMESPACE_END(io)

@@ -14,6 +14,9 @@ import <string_view>;
 
 struct Image
 {
+private:
+    using Self = Image;
+
 public:
     using type = Color;
     using view = unsafe::view2D<type, u16>;
@@ -34,9 +37,9 @@ public:
 
     auto get_view() const noexcept -> view;
 
-    auto swap(Image& other) noexcept -> void;
+    auto swap(Self& other) noexcept -> Self&;
 
-    static auto create(u16 width, u16 height) -> Image;
+    static auto create(u16 width, u16 height) -> Self;
 };
 
 NAMESPACE_BEGIN(io)

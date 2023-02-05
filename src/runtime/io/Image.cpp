@@ -42,7 +42,7 @@ auto Image::resize(u16 width, u16 height) -> std::string
     return {};
 }
 
-auto Image::swap(Image& other) noexcept -> void
+auto Image::swap(Self& other) noexcept -> Self&
 {
     using std::swap;
     data.swap(other.data);
@@ -50,7 +50,7 @@ auto Image::swap(Image& other) noexcept -> void
     swap(height, other.height);
 }
 
-auto Image::create(u16 width, u16 height) -> Image
+auto Image::create(u16 width, u16 height) -> Self
 {
     return {new type[width * height], width, height};
 }

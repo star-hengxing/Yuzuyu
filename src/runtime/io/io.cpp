@@ -7,7 +7,8 @@ NAMESPACE_BEGIN(io)
 NAMESPACE_BEGIN(file)
 
 // TODO: async read
-auto read_to_buffer(const std::string_view filename) -> fixed_buffer
+auto read_to_buffer(const std::string_view filename)
+    -> tl::expected<fixed_buffer, std::string>
 {
     const auto file = fast_io::native_file_loader{filename};
     const auto size = file.size();
@@ -16,7 +17,7 @@ auto read_to_buffer(const std::string_view filename) -> fixed_buffer
     {
         buffer[i] = file[i];
     }
-    return {Owned<char[]>{buffer}, size};
+    return {{Owned<char[]>{buffer}, size}};
 }
 
 NAMESPACE_END(file)
