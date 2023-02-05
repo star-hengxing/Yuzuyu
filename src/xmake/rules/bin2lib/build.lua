@@ -1,55 +1,3 @@
-local function bin2c(input)
-    local buffer = {}
-
-    local i = 0
-    local n = 147
-    local p = 0
-    local e = input:size()
-    local line = nil
-    local linewidth = 0x20
-    local first = true
-    while p < e do
-        line = ""
-        if p + linewidth <= e then
-            for i = 0, linewidth - 1 do
-                if first then
-                    first = false
-                    line = line .. " "
-                else
-                    line = line .. ","
-                end
-                line = line .. string.format(" 0x%02X", input[p + i + 1])
-            end
-            table.insert(buffer, line)
-            p = p + linewidth
-        elseif p < e then
-            local left = e - p
-            for i = 0, left - 1 do
-                if first then
-                    first = false
-                    line = line .. " "
-                else
-                    line = line .. ","
-                end
-                line = line .. string.format(" 0x%02X", input[p + i + 1])
-            end
-            table.insert(buffer, line)
-            p = p + left
-        else
-            break
-        end
-    end
-    return table.concat(buffer)
-end
-
-local function cpp_codegen(input, sourcefile, namespace)
-    local data = bin2c(input)
-    local basename = path.basename(sourcefile)
-    return string.format(
-        "#include <string_view>\nstatic constexpr unsigned char data[]{%s};\nnamespace %s{std::string_view %s{(char*)data, sizeof(data)};}\n",
-        data, namespace, basename)
-end
-
 rule("bin2lib.build")
     set_extensions(".vert", ".frag")
     -- after shader compiled
@@ -58,7 +6,6 @@ rule("bin2lib.build")
     add_deps("c++")
 
     on_buildcmd_file(function (target, batchcmds, sourcefile, opt)
-        import("core.base.bytes")
         -- get spv file
         local spvdir = path.join(target:autogendir(), "rules", "glsl2spv")
         local spvfile = path.join(spvdir, path.filename(sourcefile) .. ".spv")
@@ -66,28 +13,37 @@ rule("bin2lib.build")
         local outputdir = path.join(target:autogendir(), "rules", "bin2lib")
         local cppfile = path.join(outputdir, path.filename(sourcefile) .. ".spv.cpp")
 
-        if os.mtime(spvfile) > os.mtime(cppfile) then
-            batchcmds:mkdir(outputdir)
-            batchcmds:show_progress(opt.progress, "${color.build.object}codegen.spv2cpp %s", spvfile)
-            -- spv -> cpp
-            local file = io.open(cppfile, 'w')
-            if file then
-                local binarydata = bytes(io.readfile(spvfile, {encoding = "binary"}))
-                local namespace = target:extraconf("rules", "bin2lib", "namespace") or "Shader"
-                local cpp = cpp_codegen(binarydata, sourcefile, namespace)
-                file:printf(cpp)
-                file:close()
-            end
-        end
+        batchcmds:mkdir(outputdir)
+        batchcmds:show_progress(opt.progress, "${color.build.object}codegen.spv2cpp %s", spvfile)
+        local namespace = target:extraconf("rules", "bin2lib", "namespace") or "shader"
+        -- spv -> cpp
+        local argv = {"lua", "src/xmake/rules/bin2lib/codegen/source.lua", spvfile, cppfile, sourcefile, namespace}
+        batchcmds:vrunv(os.programfile(), argv, {envs = {XMAKE_SKIP_HISTORY = "y"}})
         -- add objectfile
         local objectfile = target:objectfile(cppfile)
         table.insert(target:objectfiles(), objectfile)
         -- compile spv.cpp
-        batchcmds:show_progress(opt.progress, "${color.build.object}compiling.spv.cpp %s", cppfile)
+        batchcmds:show_progress(opt.progress, "${color.build.object}compiling.%s %s", get_config("mode"), cppfile)
         batchcmds:compile(cppfile, objectfile)
         -- add deps
         batchcmds:add_depfiles(sourcefile)
-        batchcmds:set_depmtime(os.mtime(objectfile))
-        batchcmds:set_depcache(target:dependfile(objectfile))
+        local dependfile = target:dependfile(objectfile)
+        batchcmds:set_depmtime(os.mtime(dependfile))
+        batchcmds:set_depcache(dependfile)
+    end)
+
+    on_clean(function (target)
+        for _, sourcebatch in pairs(target:sourcebatches()) do
+            if sourcebatch.rulename == "bin2lib.build" then
+                for _, sourcefile in pairs(sourcebatch.sourcefiles) do
+                    -- get cpp file
+                    local outputdir = path.join(target:autogendir(), "rules", "bin2lib")
+                    local cppfile = path.join(outputdir, path.filename(sourcefile) .. ".spv.cpp")
+                    local objectfile = target:objectfile(cppfile)
+                    os.tryrm(cppfile)
+                    os.tryrm(objectfile)
+                end
+            end
+        end
     end)
 rule_end()
