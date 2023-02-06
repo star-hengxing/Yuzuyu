@@ -29,9 +29,9 @@ target("rhi")
     add_packages("spdlog", "vk-bootstrap")
 
     on_load(function (target) 
-        -- msvc stl source_location cannot work with clang
+        -- @see https://github.com/llvm/llvm-project/issues/53906
         if is_host("windows") then
-            target:add("defines", "__cpp_consteval")
+            target:add("defines", "__cpp_consteval=201811")
         end
 
         if is_mode("release") then
