@@ -159,7 +159,12 @@ auto Renderer::clear(const view_type view) -> void
 
 auto Renderer::draw(const draw_config& config) -> void
 {
-    const auto [x1, y1, x2, y2, opacity, color] = config;
+    auto [x1, y1, x2, y2, opacity, color] = config;
+
+    x1 = std::min(x1, framebuffer_view.width);
+    x2 = std::min(x2, framebuffer_view.width);
+    y1 = std::min(y1, framebuffer_view.height);
+    y2 = std::min(y2, framebuffer_view.height);
 
     for (auto y : range(y1, y2))
     {
@@ -177,7 +182,30 @@ auto Renderer::draw(const draw_config& config) -> void
                 pixel_color = color_blend(back, front, opacity);
             }
 
-            draw_pixel(x, y, pixel_color);
+            framebuffer_view.set(x, y, pixel_color);
+        }
+    }
+}
+
+auto Renderer::draw_text(u16 x_, u16 y_, view_type view) -> void
+{
+    if (x_ >= framebuffer_view.width || y_ >= framebuffer_view.height)
+        return;
+
+    auto width = (x_ + view.width < framebuffer_view.width)
+        ? view.width : (x_ + view.width - framebuffer_view.width);
+    auto height = (y_ + view.height < framebuffer_view.height)
+        ? view.height : (y_ + view.height - framebuffer_view.height);
+
+    for (auto y : range(height))
+    {
+        for (auto x : range(width))
+        {
+            const Color color = view.get(x, y);
+            if (color != Color{0, 0, 0, 0})
+            {
+                framebuffer_view.set(x_ + x, y_ + y, color);
+            }
         }
     }
 }

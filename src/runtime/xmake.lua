@@ -7,7 +7,7 @@ target("io")
     add_files("io/*.cpp")
 
     add_packages("fast_io", "stb")
-    add_packages("expected", {public = true})
+    add_packages("expected", "freetype", {public = true})
 target_end()
 
 target("window")

@@ -14,6 +14,8 @@ add_requires("fast_io")
 add_requires("stb")
 -- erro handle
 add_requires("tl_expected master", {alias = "expected"})
+-- text rendering
+add_requires("freetype")
 
 -- test
 if has_config("test") then

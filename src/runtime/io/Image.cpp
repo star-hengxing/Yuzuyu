@@ -48,6 +48,7 @@ auto Image::swap(Self& other) noexcept -> Self&
     data.swap(other.data);
     swap(width, other.width);
     swap(height, other.height);
+    return *this;
 }
 
 auto Image::create(u16 width, u16 height) -> Self

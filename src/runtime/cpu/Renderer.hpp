@@ -43,6 +43,8 @@ public:
     auto clear(const view_type view) -> void;
 
     auto draw(const draw_config& config) -> void;
+
+    auto draw_text(u16 x, u16 y, view_type view) -> void;
 };
 
 NAMESPACE_END(render)
