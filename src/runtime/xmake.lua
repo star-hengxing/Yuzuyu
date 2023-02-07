@@ -1,6 +1,14 @@
 includes("cpu")
 includes("shader")
 
+target("input")
+    set_kind("$(kind)")
+    add_rules("module")
+    add_files("input/*.cpp")
+
+    add_packages("libsdl", {public = true})
+target_end()
+
 target("io")
     set_kind("$(kind)")
     add_rules("module")
