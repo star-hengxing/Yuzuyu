@@ -8,11 +8,12 @@ end
 
 add_packages("doctest", "fast_io")
 
+set_rundir("$(projectdir)")
+set_group("test")
+
 target("io_test")
     set_kind("binary")
     add_files("*.cpp")
 
     add_deps("io")
-
-    set_rundir("$(projectdir)")
 target_end()
