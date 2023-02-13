@@ -35,7 +35,7 @@ auto Image::resize(u16 width, u16 height) -> std::string
     if (result == 0)
     {
         return fast_io::concat<std::string>(
-            "Failed to resize image\n", stbi_failure_reason());
+            "Failed to resize image\n", fast_io::mnp::os_c_str(stbi_failure_reason()));
     }
     // get resized image
     this->swap(tmp);
@@ -71,7 +71,7 @@ auto read_to_image(const std::string_view filename) -> tl::expected<Image, std::
     if (!buffer)
     {
         const auto info = fast_io::concat<std::string>(
-            "Failed to read ", filename, "\n", stbi_failure_reason());
+            "Failed to read ", filename, "\n", fast_io::mnp::os_c_str(stbi_failure_reason()));
         return tl::make_unexpected(std::move(info));
     }
 

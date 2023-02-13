@@ -18,7 +18,7 @@ TEST_CASE("image read/write")
     };
 
     using namespace std::string_view_literals;
-    constexpr auto filename = "test.png"sv;
+    constexpr auto filename = "build/test.png"sv;
 
     io::file::write_image(filename, (const u8*)colors, 2, 2);
 
