@@ -36,10 +36,15 @@ target("rhi")
     add_deps("window", "shader")
     add_packages("spdlog", "vk-bootstrap")
 
-    on_load(function (target) 
+    on_load(function (target)
         -- @see https://github.com/llvm/llvm-project/issues/53906
         if is_host("windows") then
-            target:add("defines", "__cpp_consteval=201811")
+            for _, toolchain_inst in ipairs(target:toolchains()) do
+                if toolchain_inst:name():startswith("clang") then
+                    target:add("defines", "__cpp_consteval=201811")
+                    break
+                end
+            end
         end
 
         if is_mode("release") then
