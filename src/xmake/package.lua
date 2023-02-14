@@ -19,5 +19,5 @@ add_requires("freetype")
 
 -- test
 if has_config("test") then
-    add_requires("doctest")
+    add_requires("boost_ut")
 end

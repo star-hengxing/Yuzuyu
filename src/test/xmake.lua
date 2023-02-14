@@ -6,7 +6,7 @@ if is_plat("windows") then
     set_runtimes("MDd")
 end
 
-add_packages("doctest", "fast_io")
+add_packages("boost_ut", "fast_io")
 
 set_rundir("$(projectdir)")
 set_group("test")
