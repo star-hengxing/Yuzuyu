@@ -71,6 +71,20 @@ public:
         return {new value_type[size]{}};
     }
 
+    template <typename... Args>
+    requires (!std::is_array_v<T>)
+    static auto make_uninitialize() -> Self
+    {
+        return {new value_type};
+    }
+
+    template <typename T2 = T>
+    requires std::is_array_v<T>
+    static auto make_uninitialize(size_t size) -> Self
+    {
+        return {new value_type[size]};
+    }
+
     template <typename T2>
     auto swap(Owned<T2>& box) -> void
     {

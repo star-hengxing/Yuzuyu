@@ -19,7 +19,7 @@ NAMESPACE_BEGIN(render)
 
 auto Renderer::initialize(u16 width, u16 height) -> void
 {
-    framebuffer = Owned<Color[]>{new Color[width * height]};
+    framebuffer = Owned<Color[]>::make_uninitialize(width * height);
     framebuffer_view = {framebuffer.get(), width, height};
 }
 
