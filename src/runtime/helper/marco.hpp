@@ -21,3 +21,9 @@
 #define LIBRARY_EXPORT
 #define LIBRARY_IMPORT
 #endif
+
+#if defined(DEBUG) || defined(_DEBUG)
+#define LIBRARY_DEBUG
+#else
+#define LIBRARY_RELEASE
+#endif
