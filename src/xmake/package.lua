@@ -17,6 +17,13 @@ add_requires("tl_expected master", {alias = "expected"})
 -- text rendering
 add_requires("freetype")
 
+package("filesystem")
+    set_base("ghc_filesystem")
+    on_test(function () end)
+package_end()
+-- filesystem
+add_requires("filesystem")
+
 -- test
 if has_config("test") then
     add_requires("boost_ut")

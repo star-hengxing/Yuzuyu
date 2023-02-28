@@ -18,6 +18,14 @@ target("io")
     add_packages("expected", "freetype", {public = true})
 target_end()
 
+target("os")
+    set_kind("$(kind)")
+    add_rules("module")
+    add_files("os/*.cpp")
+
+    add_packages("filesystem", {public = true})
+target_end()
+
 target("window")
     set_kind("$(kind)")
     add_rules("module")
