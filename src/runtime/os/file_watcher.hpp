@@ -18,7 +18,7 @@ namespace fs = ghc::filesystem;
 struct file_watcher
 {
 public:
-    fs::directory_entry entry;
+    fs::path file;
     fs::file_time_type mtime;
 
 public:

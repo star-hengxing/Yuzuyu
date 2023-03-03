@@ -6,8 +6,6 @@ import <string_view>;
 #include <string_view>
 #endif
 
-#include <tl/expected.hpp>
-
 #include <runtime/helper/Owned.hpp>
 #include <runtime/helper/basic.hpp>
 
@@ -20,8 +18,10 @@ struct fixed_buffer
     usize size;
 };
 
-// read all data to buffer
-auto read_to_buffer(const std::string_view filename) -> tl::expected<fixed_buffer, std::string>;
+// @note read all data to buffer
+// @param has_eof set '\0' end of file
+auto read_to_buffer(const std::string_view filename, bool has_eof = false)
+    -> fixed_buffer;
 
 NAMESPACE_END(file)
 NAMESPACE_END(io)

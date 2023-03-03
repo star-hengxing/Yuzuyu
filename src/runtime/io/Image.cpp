@@ -94,7 +94,7 @@ auto read_to_image(const std::string_view filename) -> tl::expected<Image, std::
     }
     else
     {
-        return tl::make_unexpected("No support image channel!\n");
+        return tl::make_unexpected("No support image channel!");
     }
 
     return {std::move(image)};

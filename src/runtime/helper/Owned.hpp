@@ -32,15 +32,15 @@ public:
     Owned<T>& operator = (const Owned<T>&) = delete;
 
     template <typename T2>
-    Owned(Owned<T2>&& box) noexcept : ptr(box.ptr)
+    Owned(Owned<T2>&& other) noexcept : ptr(other.ptr)
     {
-        box.ptr = nullptr;
+        other.ptr = nullptr;
     }
 
     template <typename T2>
-    auto operator = (Owned<T2>&& box) noexcept -> Self&
+    auto operator = (Owned<T2>&& other) noexcept -> Self&
     {
-        Owned(std::move(box)).swap(*this);
+        Owned(std::move(other)).swap(*this);
         return *this;
     }
 
@@ -86,10 +86,10 @@ public:
     }
 
     template <typename T2>
-    auto swap(Owned<T2>& box) -> void
+    auto swap(Owned<T2>& other) -> void
     {
         using std::swap;
-        swap(ptr, box.ptr);
+        swap(ptr, other.ptr);
     }
 
     auto get() const noexcept -> pointer
