@@ -2,10 +2,10 @@
 
 #ifdef USE_MODULES
 import <cstdint>;
-import <cstddef>;
+import <type_traits>;
 #else
 #include <cstdint>
-#include <cstddef>
+#include <type_traits>
 #endif
 
 using u8  = std::uint_least8_t;
@@ -19,7 +19,8 @@ using i32 = std::int_least32_t;
 using i64 = std::int_least64_t;
 
 using usize = std::size_t;
-using isize = std::ptrdiff_t;
+// see https://en.cppreference.com/w/cpp/iterator/size
+using isize = std::common_type_t<std::ptrdiff_t, std::make_signed_t<usize>>;
 
 using f32 = float;
 using f64 = double;

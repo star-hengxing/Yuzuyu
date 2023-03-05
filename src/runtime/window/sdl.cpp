@@ -105,7 +105,7 @@ auto sdl_system::present(void* framebuffer) -> void
     SDL_UnlockSurface(surface);
     const auto result = SDL_UpdateWindowSurface(window);
 
-    if (result != 0)
+    if (result != 0) [[unlikely]]
     {
         perrln(SDL_GetError());
     }
