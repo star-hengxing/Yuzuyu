@@ -7,9 +7,16 @@ target("io_test")
     add_deps("io")
 target_end()
 
-target("script_test")
+for _, name in ipairs({"Lexer", "Parser"}) do
+
+target("test." .. name)
     set_kind("binary")
-    add_files("Lexer.cpp")
+    add_files(name .. ".cpp")
 
     add_deps("script")
+    after_build(function (target)
+        os.execv("xmake run " .. target:name())
+    end)
 target_end()
+
+end

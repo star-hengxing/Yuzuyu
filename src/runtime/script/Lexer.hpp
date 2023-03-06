@@ -25,8 +25,6 @@ enum struct Type : u8
 
 NAMESPACE_END(Token)
 
-static constexpr auto MAX_LINE_TOKEN = usize{4};
-
 struct token_payload
 {
     Token::Type type;

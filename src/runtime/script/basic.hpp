@@ -13,9 +13,16 @@ import <vector>;
 NAMESPACE_BEGIN(script::detail)
 
 static constexpr auto MAX_TOKEN_SIZE = usize{64};
+static constexpr auto MAX_LINE_TOKEN = usize{4};
 
-template <usize MAX_SIZE>
-using fixed_string = unsafe::bounded_array<char, MAX_SIZE>;
+// template <usize MAX_SIZE>
+// using fixed_string = unsafe::bounded_array<char, MAX_SIZE>;
+
+// template <usize MAX_SIZE>
+// auto get_view(const fixed_string<MAX_SIZE>& string) noexcept -> std::string_view
+// {
+//     return {string.data(), string.size()};
+// }
 
 struct string_pool_view
 {
@@ -24,17 +31,16 @@ public:
     usize size;
 
 public:
+    auto empty() const noexcept -> bool
+    {
+        return size == 0;
+    }
+
     auto get_view(const std::vector<char>& pool) const noexcept
         -> std::string_view
     {
         return {&pool[start], size};
     }
 };
-
-template <usize MAX_SIZE>
-auto get_view(const fixed_string<MAX_SIZE>& string) noexcept -> std::string_view
-{
-    return {string.data(), string.size()};
-}
 
 NAMESPACE_END(script::detail)

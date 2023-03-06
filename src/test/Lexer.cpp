@@ -9,7 +9,7 @@ using namespace script::detail;
 
 auto main() -> int
 {
-    "lexer_error"_test = [&]
+    "lexer error"_test = [&]
     {
         bool result;
         auto lexer = Lexer{};
@@ -35,7 +35,7 @@ auto main() -> int
         test(str.c_str());
     };
 
-    "lexer_comment"_test = [&]
+    "lexer comment"_test = [&]
     {
         bool result;
         auto lexer = Lexer{};
@@ -73,7 +73,7 @@ auto main() -> int
         test("x = \"x\" # こにちは");
     };
 
-    "lexer_token"_test = [&]
+    "lexer token"_test = [&]
     {
         bool result;
         auto lexer = Lexer{};
