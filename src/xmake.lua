@@ -23,7 +23,7 @@ target("Game")
 
     -- remove console
     if is_mode("release") and is_plat("windows") then
-        target:add("ldflags", "/SUBSYSTEM:WINDOWS")
-        target:add("ldflags", "/ENTRY:mainCRTStartup", {force = true})
+        add_ldflags("/SUBSYSTEM:WINDOWS")
+        add_ldflags("/ENTRY:mainCRTStartup", {force = true})
     end
 target_end()
