@@ -1,9 +1,7 @@
 #ifdef USE_MODULES
 import <limits>;
-import <array>;
 #else
 #include <limits>
-#include <array>
 #endif
 
 #include <volk.h>
@@ -13,6 +11,7 @@ import <array>;
 #include <runtime/helper/range.hpp>
 #include "shader_module.hpp"
 #include "vk_create_info.hpp"
+#include "helper.hpp"
 #include "vulkan.hpp"
 
 // TODO: more friendly handle error
@@ -151,11 +150,10 @@ auto vulkan::create_pipeline() -> void
     const auto multisample = vk_create_info::pipeline_multisample_state(
         VK_SAMPLE_COUNT_1_BIT);
 
-    const auto dynamic_states = std::array<VkDynamicState, 2>{
+    const VkDynamicState dynamic_states[2]{
         VK_DYNAMIC_STATE_VIEWPORT,
         VK_DYNAMIC_STATE_SCISSOR};
-    const auto dynamic_state = vk_create_info::pipeline_dynamic_state(
-        dynamic_states.data(), dynamic_states.size());
+    const auto dynamic_state = vk_create_info::pipeline_dynamic_state(dynamic_states, 2);
 
     auto pipeline_info = vk_create_info::pipeline();
     pipeline_info.pInputAssemblyState = &input_assembly;
@@ -176,7 +174,7 @@ auto vulkan::create_pipeline() -> void
     result = fs_shader_code.create(shader::fs);
     CHECK_RESULT(result);
 
-    auto shader_stages = std::array<VkPipelineShaderStageCreateInfo, 2>{
+    const VkPipelineShaderStageCreateInfo shader_stages[2]{
         vk_create_info::pipeline_shader_state(VK_SHADER_STAGE_VERTEX_BIT, vs_shader_code.get()),
         vk_create_info::pipeline_shader_state(VK_SHADER_STAGE_FRAGMENT_BIT, fs_shader_code.get())};
 
@@ -186,8 +184,8 @@ auto vulkan::create_pipeline() -> void
     vertex_input.vertexAttributeDescriptionCount = 0;
     vertex_input.pVertexAttributeDescriptions = nullptr; // Optional
 
-    pipeline_info.stageCount = static_cast<uint32_t>(shader_stages.size());
-    pipeline_info.pStages = shader_stages.data();
+    pipeline_info.stageCount = 2;
+    pipeline_info.pStages = shader_stages;
 
     VkPipeline pipeline;
     result = vkCreateGraphicsPipelines(
@@ -197,7 +195,22 @@ auto vulkan::create_pipeline() -> void
 
 auto vulkan::create_sync() -> void
 {
-    // vk_create_info::semaphore();
+    const auto size = swapchain.image_views.size();
+    frames.resize(size);
+
+    VkResult result;
+    const auto semaphore_info = vk_create_info::semaphore();
+    const auto fence_info = vk_create_info::fence(VK_FENCE_CREATE_SIGNALED_BIT);
+
+    for (auto i : range(size))
+    {
+        result = vkCreateSemaphore(device, &semaphore_info, nullptr, &frames[i].semaphores.signal);
+        CHECK_RESULT(result);
+        result = vkCreateSemaphore(device, &semaphore_info, nullptr, &frames[i].semaphores.wait);
+        CHECK_RESULT(result);
+        result = vkCreateFence(device, &fence_info, nullptr, &frames[i].fence);
+        CHECK_RESULT(result);
+    }
 }
 
 auto vulkan::window_resize() -> void
@@ -272,6 +285,47 @@ auto vulkan::present_frame(VkQueue queue, uint32_t index, VkSemaphore wait)
     return vkQueuePresentKHR(queue, &info);
 }
 
+auto vulkan::record_command(VkCommandBuffer command, VkFramebuffer framebuffer) -> void
+{
+    VkResult result;
+    auto command_buffer_begin = vk_create_info::command_buffer_begin();
+
+    VkClearValue clear_value{};
+    clear_value.color = {{0.0f, 0.0f, 0.0f, 0.7f}};
+
+    auto renderpass_begin = vk_create_info::renderpass_begin();
+    renderpass_begin.renderPass = renderpass;
+    renderpass_begin.renderArea.offset.x = 0;
+    renderpass_begin.renderArea.offset.y = 0;
+    renderpass_begin.renderArea.extent = extent;
+    renderpass_begin.clearValueCount = 1;
+    renderpass_begin.pClearValues = &clear_value;
+    renderpass_begin.framebuffer = framebuffer;
+
+    const auto viewport = vk_create_info::viewport(extent.width, extent.height, 0, 1);
+    const auto scissor = vk_create_info::rect2D(extent, 0, 0);
+
+    result = vkBeginCommandBuffer(command, &command_buffer_begin);
+    CHECK_RESULT(result);
+    vkCmdBeginRenderPass(command, &renderpass_begin, VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdSetViewport(command, 0, 1, &viewport);
+    vkCmdSetScissor(command, 0, 1, &scissor);
+    // vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+    // vkCmdDraw(command, 4, 1, 0, 0);
+    // VkDeviceSize offset = 0;
+    // vkCmdBindVertexBuffers(command, 0, 1, &mesh.vertex_buffer.buffer, &offset);
+    // vkCmdBindIndexBuffer(command, mesh.index_buffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+    // vkCmdDrawIndexed(command, mesh.indices.size(), 1, 0, 0, 1);
+
+    vkCmdEndRenderPass(command);
+    result = vkEndCommandBuffer(command);
+    CHECK_RESULT(result);
+}
+
+auto vulkan::draw() -> void
+{
+}
+
 auto vulkan::clean() -> void
 {
     if (renderpass)
@@ -286,10 +340,15 @@ auto vulkan::clean() -> void
         command_pool = VK_NULL_HANDLE;
     }
 
-    for (auto i : range(swapchain.image_views.size()))
+    if (!framebuffers.empty() && framebuffers.front() != VK_NULL_HANDLE)
     {
-        vkDestroyFramebuffer(device, framebuffers[i], nullptr);
-        vkDestroyImageView(device, swapchain.image_views[i], nullptr);
+        for (auto i : range(framebuffers.size()))
+        {
+            vkDestroyFramebuffer(device, framebuffers[i], nullptr);
+            framebuffers[i] = VK_NULL_HANDLE;
+            vkDestroyImageView(device, swapchain.image_views[i], nullptr);
+            swapchain.image_views[i] = VK_NULL_HANDLE;
+        }
     }
 
     if (swapchain.self)
@@ -320,6 +379,53 @@ auto vulkan::clean() -> void
     {
         vkDestroyInstance(instance, nullptr);
         instance = VK_NULL_HANDLE;
+    }
+}
+
+vulkan::~vulkan()
+{
+    if (renderpass)
+    {
+        vkDestroyRenderPass(device, renderpass, nullptr);
+    }
+
+    if (command_pool)
+    {
+        vkDestroyCommandPool(device, command_pool, nullptr);
+    }
+
+    if (!framebuffers.empty() && framebuffers.front() != VK_NULL_HANDLE)
+    {
+        for (auto i : range(framebuffers.size()))
+        {
+            vkDestroyFramebuffer(device, framebuffers[i], nullptr);
+            vkDestroyImageView(device, swapchain.image_views[i], nullptr);
+        }
+    }
+
+    if (swapchain.self)
+    {
+        vkDestroySwapchainKHR(device, swapchain.self, nullptr);
+    }
+
+    if (device)
+    {
+        vkDestroyDevice(device, nullptr);
+    }
+
+    if (instance && surface)
+    {
+        vkDestroySurfaceKHR(instance, surface, nullptr);
+    }
+
+    if (instance && debug_messenger)
+    {
+        vkb::destroy_debug_utils_messenger(instance, debug_messenger);
+    }
+
+    if (instance)
+    {
+        vkDestroyInstance(instance, nullptr);
     }
 }
 

@@ -7,15 +7,17 @@ import <vector>;
 #endif
 
 #include <volk.h>
-#include <GLFW/glfw3.h>
 
-#include <runtime/window/window_system.hpp>
+#include <runtime/window/sdl.hpp>
 
 NAMESPACE_BEGIN(runtime)
 NAMESPACE_BEGIN(rhi)
 
 struct vulkan
 {
+private:
+    using window_system = window::sdl_system;
+
 private:
     window_system* window = nullptr;
 
@@ -49,6 +51,21 @@ private:
     VkRenderPass renderpass = VK_NULL_HANDLE;
     std::vector<VkFramebuffer> framebuffers;
 
+    struct Frame
+    {
+        struct Semaphore
+        {
+            VkSemaphore signal = VK_NULL_HANDLE;
+            VkSemaphore wait = VK_NULL_HANDLE;
+        };
+
+        Semaphore semaphores;
+        VkFence fence = VK_NULL_HANDLE;
+    };
+
+    std::vector<Frame> frames;
+    uint32_t frame_index;
+
 private:
     auto create_instance_and_device() -> void;
     auto create_swapchain(uint32_t width, uint32_t height) -> void;
@@ -66,8 +83,11 @@ private:
     auto present_frame(VkQueue queue, uint32_t index, VkSemaphore wait) -> VkResult;
     auto window_resize() -> void;
 
+    auto record_command(VkCommandBuffer command, VkFramebuffer framebuffer) -> void;
+    auto draw() -> void;
+
 public:
-    ~vulkan() { clean(); }
+    ~vulkan();
     // if success return null pointer, otherwise return the error message string
     [[nodiscard]] auto initialize(window_system* window) -> const char*;
 

@@ -1,32 +1,20 @@
-#ifdef USE_MODULES
-import <source_location>;
-#else
-#include <source_location>
-#endif
-
 #include <volk.h>
 #include <VkBootstrap.h>
 #include <spdlog/spdlog.h>
 
 #include <config.hpp>
 #include "vulkan.hpp"
+#include "helper.hpp"
 
-auto check_vulkan_result(
-    const char* path,
-    int line,
-    const char* function,
-    VkResult result) -> void
+auto check_vulkan_result(VkResult result, const std::source_location location)
+    -> void
 {
-    if (result == VK_SUCCESS)
+    if (result == VK_SUCCESS) [[likely]]
         return;
 
-    spdlog::error("[{}:{}] {}: vulkan result error", path, line, function);
+    spdlog::error("[{}:{}] {}: vulkan result error",
+        location.file_name(), location.line(), location.function_name());
 }
-
-#define CHECK_RESULT(result) check_vulkan_result( \
-    std::source_location::current().file_name(),  \
-    std::source_location::current().line(),       \
-    std::source_location::current().function_name(), result)
 
 NAMESPACE_BEGIN(runtime)
 NAMESPACE_BEGIN(rhi)

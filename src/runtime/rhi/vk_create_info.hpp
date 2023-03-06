@@ -1,21 +1,8 @@
 #pragma once
 
-#ifdef USE_MODULES
-import <source_location>;
-#else
-#include <source_location>
-#endif
-
 #include <volk.h>
 
 #include <runtime/helper/marco.hpp>
-
-auto check_vulkan_result(const char* path, int line, const char* function, VkResult result) -> void;
-
-#define CHECK_RESULT(result) check_vulkan_result( \
-    std::source_location::current().file_name(),  \
-    std::source_location::current().line(),       \
-    std::source_location::current().function_name(), result)
 
 NAMESPACE_BEGIN(vk_create_info)
 
@@ -470,6 +457,13 @@ inline auto command_buffer_begin() -> VkCommandBufferBeginInfo
 {
     VkCommandBufferBeginInfo info{};
     info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    return info;
+}
+
+inline auto renderpass_begin() -> VkRenderPassBeginInfo
+{
+    VkRenderPassBeginInfo info{};
+    info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     return info;
 }
 
