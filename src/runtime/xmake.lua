@@ -49,3 +49,12 @@ target("rhi")
         add_defines("VK_BOOTSTRAP_WERROR")
     end
 target_end()
+
+target("script")
+    set_kind("$(kind)")
+    add_rules("module.component")
+    add_files("script/*.cpp")
+
+    add_deps("io")
+    add_packages("fast_io")
+target_end()

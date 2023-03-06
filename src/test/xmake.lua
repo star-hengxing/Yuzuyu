@@ -6,3 +6,10 @@ target("io_test")
 
     add_deps("io")
 target_end()
+
+target("script_test")
+    set_kind("binary")
+    add_files("Lexer.cpp")
+
+    add_deps("script")
+target_end()
