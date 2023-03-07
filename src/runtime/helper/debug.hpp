@@ -14,7 +14,7 @@
 #include <cstdio>
 #endif
 
-#include "marco.hpp"
+#include "macro.hpp"
 
 NAMESPACE_BEGIN(debug)
 

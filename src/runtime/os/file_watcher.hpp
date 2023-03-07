@@ -8,7 +8,7 @@ import <string_view>;
 
 #include <ghc/filesystem.hpp>
 
-#include <runtime/helper/marco.hpp>
+#include <runtime/helper/macro.hpp>
 
 NAMESPACE_BEGIN(os)
 NAMESPACE_BEGIN(detail)
