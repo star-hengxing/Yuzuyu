@@ -11,9 +11,10 @@ auto symbol_table::contain(const string_pool_view symbol,
 auto symbol_table::find(const string_pool_view symbol,
     const std::vector<char>& string_pool) const noexcept -> Symbol* const
 {
+    const auto view = symbol.get_view(string_pool);
     for (auto& entry : table)
     {
-        if (entry.key.get_view(string_pool) == symbol.get_view(string_pool))
+        if (entry.key.get_view(string_pool) == view)
         {
             return const_cast<Symbol* const>(&entry);
         }

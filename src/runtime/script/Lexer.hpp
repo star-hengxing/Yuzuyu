@@ -16,7 +16,8 @@ NAMESPACE_BEGIN(Token)
 
 enum struct Type : u8
 {
-    symbol = 0,
+    identifier = 0,
+    keyword,
     string,
     assign,
 
@@ -54,7 +55,7 @@ public:
 protected:
     auto parse_string(Context* context) noexcept -> bool;
 
-    auto parse_symbol(Context* context) noexcept -> bool;
+    auto parse_identifier(Context* context) noexcept -> bool;
 
     auto get_token(Context* context) noexcept -> bool;
 

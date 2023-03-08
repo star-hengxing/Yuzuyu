@@ -34,6 +34,18 @@ public:
     }
 };
 
+auto is_keyword(const std::string_view key) noexcept -> bool
+{
+    for (auto i : KEYWORDS)
+    {
+        if (key == i)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 NAMESPACE_END(script::detail)
 
 NAMESPACE_BEGIN()
@@ -69,8 +81,9 @@ constexpr auto skip_ws(Context* context) noexcept -> void
     context->set(ptr);
 }
 
-constexpr auto skip_line(Context* context) noexcept -> void
+constexpr auto skip_line(Context* context) noexcept -> usize
 {
+    auto count = usize{0};
     char c = context->get();
     auto ptr = context->current;
 
@@ -78,8 +91,13 @@ constexpr auto skip_line(Context* context) noexcept -> void
     {
         ptr += 1;
         c = *ptr;
+        if (c == '\n')
+        {
+            count += 1;
+        }
     }
     context->set(ptr);
+    return count;
 }
 
 constexpr auto skip_comment(Context* context) noexcept -> void
@@ -152,7 +170,7 @@ auto Lexer::parse_string(Context* context) noexcept -> bool
     return true;
 }
 
-auto Lexer::parse_symbol(Context* context) noexcept -> bool
+auto Lexer::parse_identifier(Context* context) noexcept -> bool
 {
     auto size = usize{0};
     const auto start = string_pool.size();
@@ -184,7 +202,7 @@ auto Lexer::parse_symbol(Context* context) noexcept -> bool
                 return false;
             }
         }
-        // check valid symbol
+        // check valid identifier
         if (size >= MAX_TOKEN_SIZE) [[unlikely]]
         {
             context->type = Token::Type::error;
@@ -196,16 +214,21 @@ auto Lexer::parse_symbol(Context* context) noexcept -> bool
 
     context->set(ptr);
     context->literal = {start, size};
+
+    if (is_keyword(context->literal.get_view(string_pool)))
+    {
+        context->type = Token::Type::keyword;
+    }
     return true;
 }
 
 auto Lexer::get_token(Context* context) noexcept -> bool
 {
-    char c = context->get();
+    const char c = context->get();
     if (is_letter(c) || c == '_')
     {
-        context->type = Token::Type::symbol;
-        return parse_symbol(context);
+        context->type = Token::Type::identifier;
+        return parse_identifier(context);
     }
     else if (c == '"')
     {
@@ -288,10 +311,13 @@ auto Lexer::tokenization(const char* start) noexcept -> bool
         // next line
         if (c == '\r' || c == '\n')
         {
-            skip_line(&context);
-            tokens.push_back({line, payload});
-            line += 1;
-            payload.size = 0;
+            const auto count = skip_line(&context);
+            if (payload.size != 0)
+            {
+                tokens.push_back({line, payload});
+                payload.size = 0;
+            }
+            line += count;
             continue;
         }
 
@@ -339,7 +365,8 @@ auto Lexer::parse(const std::string_view filename) noexcept -> bool
         perrln(e);
         return false;
     }
-
+    // remove previous results
+    tokens.clear();
     return tokenization(file.data.get());
 }
 

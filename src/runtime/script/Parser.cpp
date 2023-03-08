@@ -1,115 +1,65 @@
+#include <algorithm>
+
 #include <fast_io.h>
 
-#include <runtime/helper/range.hpp>
 #include "Parser.hpp"
 
 using namespace script::detail;
 using Type = Token::Type;
 
-static constexpr std::string_view KEYWORDS[]
-{
-    "scene",
-    "goto",
-    "set",
-    "end",
-};
-
-NAMESPACE_BEGIN()
-
-auto is_keyword(const std::string_view key) noexcept -> bool
-{
-    for (auto i : KEYWORDS)
-    {
-        if (key == i)
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-NAMESPACE_END()
-
 NAMESPACE_BEGIN(script::detail)
 
-auto Parser::parse_global_scope(const line_payload& payload) noexcept -> bool
+auto Parser::parse_global_scope(const line_payload& payload) const noexcept -> bool
 {
     const auto [size, tokens] = payload;
-    if (size != 2 && size != 3)
-        return false;
-
-    Type type = tokens[0].type;
     if (size == 2)
     {
-        // symbol string
-        if (type == Type::symbol && tokens[1].type == Type::string)
-        {
-            const auto symbol = Symbol{tokens[0].string, tokens[1].string};
-            if (!symbol.value.empty()
-                && symbol.key.get_view(lexer.string_pool) == KEYWORDS[0])
-            {
-                return symbols.push_back(symbol, lexer.string_pool);
-            }
-        }
+        // exp -> keyword string
+        const Type rule[]{Type::keyword, Type::string};
+        const Type exp[]{tokens[0].type, tokens[1].type};
+        return std::ranges::equal(exp, rule);
     }
     else if (size == 3)
     {
-        // symbol = string
-        if (type == Type::symbol
-            && tokens[1].type == Type::assign
-            && tokens[2].type == Type::string)
-        {
-            const auto symbol = Symbol{tokens[0].string, tokens[2].string};
-            const auto key = symbol.key.get_view(lexer.string_pool);
-            // new character
-            if (!is_keyword(key) && !symbol.value.empty()
-                && !symbols.contain(symbol.key, lexer.string_pool))
-            {
-                return symbols.push_back(symbol, lexer.string_pool);
-            }
-        }
+        // exp -> identifier = string
+        const Type rule[]{Type::identifier, Type::assign, Type::string};
+        const Type exp[]{tokens[0].type, tokens[1].type, tokens[2].type};
+        return std::ranges::equal(exp, rule);
     }
 
     return false;
 }
 
-auto Parser::parse_script_scope(const line_payload& payload) noexcept -> bool
+auto Parser::parse_script_scope(const line_payload& payload) const noexcept -> bool
 {
     const auto [size, tokens] = payload;
-    Type type = tokens[0].type;
     if (size == 1)
     {
-        // string
-        if (type == Type::string)
-            return true;
+        // exp -> string
+        return tokens[0].type == Type::string
+               || tokens[0].type == Type::keyword;
     }
     else if (size == 2)
     {
-        // symbol string
-        if (type == Type::symbol && tokens[1].type == Type::string)
-        {
-            const auto symbol = Symbol{tokens[0].string, tokens[1].string};
-            const auto key = symbol.key.get_view(lexer.string_pool);
-            if (symbols.contain(symbol.key, lexer.string_pool) || is_keyword(key))
-                return true;
-        }
+        // exp -> identifier string
+        const Type rule1[]{Type::identifier, Type::string};
+        // exp -> keyword string
+        const Type rule2[]{Type::keyword, Type::string};
+        const Type exp[]{tokens[0].type, tokens[1].type};
+        return std::ranges::equal(exp, rule1) || std::ranges::equal(exp, rule2);
     }
     else if (size == 3)
     {
-        // symbol symbol string
-        if (type == Type::symbol
-            && tokens[1].type == Type::symbol
-            && tokens[2].type == Type::string)
-        {
-            return true;
-        }
+        // exp -> keyword identifier string
+        const Type rule[]{Type::keyword, Type::identifier, Type::string};
+        const Type exp[]{tokens[0].type, tokens[1].type, tokens[2].type};
+        return std::ranges::equal(exp, rule);
     }
 
     return false;
 }
 
-auto Parser::parse_line(const line_payload& payload, bool is_script_scope) noexcept
-    -> bool
+auto Parser::parse_line(const line_payload& payload, bool is_script_scope) const noexcept -> bool
 {
     if (payload.size == 0)
         return false;
@@ -117,29 +67,124 @@ auto Parser::parse_line(const line_payload& payload, bool is_script_scope) noexc
     return is_script_scope ? parse_script_scope(payload) : parse_global_scope(payload);
 }
 
-auto Parser::parse() noexcept -> bool
+auto Parser::generate_ast() noexcept -> std::vector<ast_node>
 {
     auto is_script_scope = false;
+    auto ast = std::vector<ast_node>{};
     for (const auto& payload : lexer.tokens)
     {
         if (!parse_line(payload.token, is_script_scope)) [[unlikely]]
         {
-            perrln("error from line ", payload.line);
-            return false;
+            perrln("line ", payload.line, ": syntax error");
+            return {};
         }
+        // semantic analysis
+        const auto size = payload.token.size;
+        const auto tokens = payload.token.token;
 
         if (!is_script_scope) [[unlikely]]
         {
-            // is scene?
-            if (payload.token.size == 2)
+            Symbol symbol;
+            symbol.key = tokens[0].string;
+            if (size == 2)
             {
+                // scene
                 is_script_scope = true;
-                continue;
+                symbol.value = tokens[1].string;
+                // mutiple define
+                if (symbol.value.empty()
+                    || symbol.key.get_view(lexer.string_pool) != KEYWORDS[0]
+                    || !symbols.push_back(symbol, lexer.string_pool))
+                {
+                    return {};
+                }
+            }
+            else if (size == 3)
+            {
+                // character
+                symbol.value = tokens[2].string;
+                // mutiple define
+                if (symbol.value.empty() && symbols.contain(symbol.key, lexer.string_pool))
+                    return {};
+
+                symbols.table.push_back(symbol);
+            }
+            else
+            {
+                // syntax already checked
+                global::unreachable();
+            }
+            // global not generate node, just add symbol in symbol table.
+            continue;
+        }
+
+        ast_node nodes;
+        nodes.size = size;
+
+        if (size == 1)
+        {
+            if (tokens[0].type == Token::Type::keyword)
+            {
+                nodes.node[0].type = Syntax::Type::keyword;
+            }
+            else if (tokens[0].type == Token::Type::string)
+            {
+                nodes.node[0].type = Syntax::Type::value;
+                nodes.node[0].value = tokens[0].string;
+            }
+            else
+            {
+                // syntax already checked
+                global::unreachable();
             }
         }
+        else if (size == 2)
+        {
+            nodes.node[0].type = Syntax::Type::keyword;
+            nodes.node[0].value = tokens[0].string;
+            nodes.node[1].type = Syntax::Type::value;
+            nodes.node[1].value = tokens[1].string;
+            if (tokens[0].type == Token::Type::identifier)
+            {
+                if (!symbols.contain(tokens[0].string, lexer.string_pool))
+                    return {};
+
+                nodes.node[0].type = Syntax::Type::character;
+            }
+            else
+            {
+                auto symbol = Symbol{tokens[0].string, tokens[1].string};
+                auto is_scene = symbol.key.get_view(lexer.string_pool) == KEYWORDS[0];
+                if (is_scene)
+                {
+                    // mutiple define
+                    if (symbol.value.empty()
+                        || !symbols.push_back(symbol, lexer.string_pool))
+                    {
+                        return {};
+                    }
+                }
+            }
+        }
+        else if (size == 3)
+        {
+            nodes.node[0].type = Syntax::Type::keyword;
+            nodes.node[0].value = tokens[0].string;
+            nodes.node[1].type = Syntax::Type::variable;
+            nodes.node[1].value = tokens[1].string;
+            nodes.node[2].type = Syntax::Type::value;
+            nodes.node[2].value = tokens[2].string;
+        }
+        else
+        {
+            // syntax already checked
+            global::unreachable();
+        }
+
+        ast.push_back(nodes);
     }
 
-    return true;
+    return ast;
 }
 
 NAMESPACE_END(script::detail)

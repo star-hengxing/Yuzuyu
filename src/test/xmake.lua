@@ -14,9 +14,6 @@ target("test." .. name)
     add_files(name .. ".cpp")
 
     add_deps("script")
-    after_build(function (target)
-        os.execv("xmake run " .. target:name())
-    end)
 target_end()
 
 end

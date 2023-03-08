@@ -15,6 +15,15 @@ NAMESPACE_BEGIN(script::detail)
 static constexpr auto MAX_TOKEN_SIZE = usize{64};
 static constexpr auto MAX_LINE_TOKEN = usize{4};
 
+static constexpr std::string_view KEYWORDS[]
+{
+    "scene",
+    "goto",
+    "set",
+    "end",
+};
+
+auto is_keyword(const std::string_view key) noexcept -> bool;
 // template <usize MAX_SIZE>
 // using fixed_string = unsafe::bounded_array<char, MAX_SIZE>;
 
