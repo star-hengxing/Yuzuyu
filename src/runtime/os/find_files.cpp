@@ -1,33 +1,10 @@
 #include <ghc/filesystem.hpp>
 
-#include "os.hpp"
+#include "find_files.hpp"
 
 NAMESPACE_BEGIN(os)
-NAMESPACE_BEGIN(detail)
 
 namespace fs = ghc::filesystem;
-
-NAMESPACE_BEGIN()
-
-auto recursive_find_files(std::vector<std::string>& files,
-    const std::string_view dir, const std::string_view extension,
-    bool is_recursive) -> void
-{
-    for (const auto& entry : fs::directory_iterator(dir))
-    {
-        if (entry.is_directory() && is_recursive)
-        {
-            recursive_find_files(files, entry.path().string(), extension, is_recursive);
-        }
-
-        if (entry.path().extension() == extension)
-        {
-            files.push_back(entry.path().string());
-        }
-    }
-}
-
-NAMESPACE_END()
 
 auto find_files(const std::string_view str) -> std::vector<std::string>
 {
@@ -51,9 +28,27 @@ auto find_files(const std::string_view str) -> std::vector<std::string>
     // recursive match files?
     const auto is_recursive = (str.rfind("**") != std::string_view::npos);
 
-    recursive_find_files(files, dir, extension, is_recursive);
+    if (is_recursive)
+    {
+        for (const auto& entry : fs::recursive_directory_iterator{dir})
+        {
+            if (entry.is_regular_file() && entry.path().extension() == extension)
+            {
+                files.push_back(entry.path().string());
+            }
+        }
+    }
+    else
+    {
+        for (const auto& entry : fs::directory_iterator{dir})
+        {
+            if (entry.is_regular_file() && entry.path().extension() == extension)
+            {
+                files.push_back(entry.path().string());
+            }
+        }
+    }
     return files;
 }
 
 NAMESPACE_END(detail)
-NAMESPACE_END(os)

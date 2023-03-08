@@ -23,8 +23,7 @@ target("os")
     add_rules("module.component")
     add_files("os/*.cpp")
 
-    add_packages("fast_io")
-    add_packages("filesystem", {public = true})
+    add_packages("fast_io", "filesystem", {public = true})
 target_end()
 
 target("window")
