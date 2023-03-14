@@ -23,6 +23,11 @@ target("os")
     add_rules("module.component")
     add_files("os/*.cpp")
 
+    if is_plat("windows") then
+        add_files("os/audio/xaudio2.cpp")
+        add_syslinks("ole32")
+    end
+
     add_packages("fast_io", "filesystem", {public = true})
 target_end()
 
