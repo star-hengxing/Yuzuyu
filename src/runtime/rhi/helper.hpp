@@ -1,9 +1,7 @@
 #pragma once
 
 #ifdef __clang__
-#if __clang_major__ <= 15
 #define __cpp_consteval 201811
-#endif
 #endif
 #include <source_location>
 
