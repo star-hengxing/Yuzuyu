@@ -39,7 +39,7 @@ public:
 
     auto swap(Self& other) noexcept -> Self&;
 
-    static auto create(u16 width, u16 height) -> Self;
+    static auto create(u16 width, u16 height) noexcept -> Self;
 };
 
 NAMESPACE_BEGIN(io)

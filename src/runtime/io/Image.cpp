@@ -29,7 +29,7 @@ auto Image::resize(u16 width, u16 height) -> std::string
 {
     auto tmp = Image::create(width, height);
     const int result = stbir_resize_uint8(
-        reinterpret_cast<u8*>(this->data.get()), this->width, this->height,
+        reinterpret_cast<const u8*>(this->data.get()), this->width, this->height,
         0, reinterpret_cast<u8*>(tmp.data.get()), width, height, 0, 4);
 
     if (result == 0)
@@ -51,7 +51,7 @@ auto Image::swap(Self& other) noexcept -> Self&
     return *this;
 }
 
-auto Image::create(u16 width, u16 height) -> Self
+auto Image::create(u16 width, u16 height) noexcept -> Self
 {
     return {new type[width * height], width, height};
 }
