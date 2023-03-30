@@ -62,3 +62,13 @@ target("script")
     add_deps("io")
     add_packages("fast_io")
 target_end()
+
+target("Multimedia")
+    set_kind("$(kind)")
+    add_rules("module.component")
+    add_files("Multimedia/*.cpp")
+
+    add_deps("os")
+    add_packages("fast_io")
+    add_packages("ffmpeg", {public = true})
+target_end()

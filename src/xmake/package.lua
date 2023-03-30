@@ -23,6 +23,8 @@ package("filesystem")
 package_end()
 -- filesystem
 add_requires("filesystem")
+-- video/audio
+add_requires("ffmpeg")
 
 -- test
 if has_config("test") then
