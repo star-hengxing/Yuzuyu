@@ -15,7 +15,8 @@ struct view2D
 {
 private:
     using value_type = std::remove_cvref_t<T>;
-    using pointer = value_type*;
+    using pointer = T*;
+    using const_pointer = T* const;
     using Self = view2D;
 
 public:
@@ -23,37 +24,66 @@ public:
     size_type width, height;
 
 public:
-    view2D(pointer ptr, size_type width, size_type height) :
-        ptr(ptr), width(width), height(height)
-    {}
+    constexpr view2D(pointer ptr, size_type width, size_type height) noexcept :
+        ptr(ptr), width(width), height(height) {}
 
-    auto begin() noexcept -> pointer
+    constexpr auto cbegin() const noexcept -> const_pointer
     {
         return ptr;
     }
 
-    auto size() const noexcept -> size_type
-    {
-        return width * height;
-    }
-
-    auto end() noexcept -> pointer
+    constexpr auto cend() const noexcept -> const_pointer
     {
         return &ptr[width * height];
     }
 
-    auto get(usize x, usize y) const noexcept -> value_type
+    constexpr auto begin() const noexcept -> const_pointer
+    {
+        return ptr;
+    }
+
+    constexpr auto end() const noexcept -> const_pointer
+    {
+        return &ptr[width * height];
+    }
+
+    constexpr auto begin() noexcept -> pointer
+    {
+        return ptr;
+    }
+
+    constexpr auto end() noexcept -> pointer
+    {
+        return &ptr[width * height];
+    }
+
+    constexpr auto data() noexcept -> pointer
+    {
+        return ptr;
+    }
+
+    constexpr auto size() const noexcept -> size_type
+    {
+        return width * height;
+    }
+
+    constexpr auto empty() const noexcept -> bool
+    {
+        return !ptr || width == 0 || height == 0;
+    }
+
+    constexpr auto get(usize x, usize y) const noexcept -> value_type
     {
         return ptr[x + y * width];
     }
 
-    auto set(usize x, usize y, const value_type& value) noexcept -> Self&
+    constexpr auto set(usize x, usize y, const value_type& value) noexcept -> Self&
     {
         ptr[x + y * width] = value;
         return *this;
     }
 
-    auto fill(const value_type& value) noexcept -> void
+    constexpr auto fill(const value_type& value) noexcept -> void
     {
         std::ranges::fill(*this, value);
     }

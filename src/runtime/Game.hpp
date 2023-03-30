@@ -1,26 +1,26 @@
 #pragma once
 
-#include <runtime/window/window_system.hpp>
-#include <runtime/helper/Owned.hpp>
+// #include <runtime/window/sdl.hpp>
+// #include <runtime/helper/Owned.hpp>
 
-NAMESPACE_BEGIN(runtime)
+// NAMESPACE_BEGIN(runtime)
 
-struct Game final
-{
-private:
-    using Self = Game;
+// struct Game final
+// {
+// private:
+//     using Self = Game;
 
-private:
-    window_system window;
+// private:
+//     window::sdl_system window;
 
-public:
-    static auto create(int argc, char** argv) -> Owned<Self>;
+// public:
+//     static auto create(int argc, char** argv) -> Owned<Self>;
 
-    auto initialize() -> void;
+//     auto initialize() -> void;
 
-    auto run() -> void;
+//     auto run() -> void;
 
-    auto clean() -> void;
-};
+//     auto clean() -> void;
+// };
 
-NAMESPACE_END(runtime)
+// NAMESPACE_END(runtime)

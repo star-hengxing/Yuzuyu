@@ -1,9 +1,11 @@
-.vs
-.vscode
-.xmake
-.cache
+.vs/
+.vscode/
+.xmake/
+.cache/
+vsxmake*/
 
 # build
-build
-out
-imgui.ini
+build/
+
+# resource
+assets/
