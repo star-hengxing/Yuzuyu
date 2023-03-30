@@ -41,10 +41,9 @@ auto Xaudio2::initialize() noexcept -> const char*
     return nullptr;
 }
 
-auto Xaudio2::set_callback(void* userdata, audio_callback callback) noexcept -> Self&
+auto Xaudio2::set_callback(std::function<audio_callback> callback) noexcept -> Self&
 {
-    this->userdata = userdata;
-    this->callback = callback;
+    this->callback = std::move(callback);
     return *this;
 }
 
@@ -156,14 +155,14 @@ auto Xaudio2::worker() noexcept -> void
         source->GetState(&state);
         do
         {
-            if (state.BuffersQueued > MIN_BUFFER_SIZE_CALLBACK || !callback || !userdata)
+            if (state.BuffersQueued > MIN_BUFFER_SIZE_CALLBACK || !callback)
                 break;
 
             for ([[maybe_unused]] auto _ : range(MAX_BUFFER_SIZE - state.BuffersQueued))
             {
                 const auto current_buffer = ring_buffer.get() + index * MAX_SINGLE_BUFFER_SIZE;
                 index = (index + 1) % MAX_BUFFER_SIZE;
-                std::invoke(callback, userdata, current_buffer, MAX_SINGLE_BUFFER_SIZE);
+                std::invoke(callback, current_buffer, MAX_SINGLE_BUFFER_SIZE);
 
                 auto buffer = XAUDIO2_BUFFER{};
                 buffer.pAudioData = current_buffer;
