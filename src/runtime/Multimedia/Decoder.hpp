@@ -14,8 +14,8 @@ extern "C"
 #include <libswscale/swscale.h>
 }
 
-#include <runtime/helper/Rect2D.hpp>
-#include <runtime/helper/Color.hpp>
+#include <runtime/base/Rect2D.hpp>
+#include <runtime/base/Color.hpp>
 #include <runtime/os/audio/base.hpp>
 
 NAMESPACE_BEGIN(Multimedia)

@@ -6,13 +6,10 @@ import <string_view>;
 #include <string_view>
 #endif
 
-#include <volk.h>
-
-#include <runtime/helper/basic.hpp>
+#include <runtime/base/base.hpp>
 #include "vk_create_info.hpp"
 
-NAMESPACE_BEGIN(runtime)
-NAMESPACE_BEGIN(rhi)
+NAMESPACE_BEGIN(runtime::rhi)
 
 struct shader_module
 {
@@ -79,5 +76,4 @@ public:
     }
 };
 
-NAMESPACE_END(rhi)
-NAMESPACE_END(runtime)
+NAMESPACE_END(runtime::rhi)

@@ -1,7 +1,7 @@
 #include <thread>
 
-#include <runtime/helper/debug.hpp>
-#include <runtime/helper/range.hpp>
+#include <runtime/base/debug.hpp>
+#include <runtime/base/range.hpp>
 #include "Xaudio2.hpp"
 
 NAMESPACE_BEGIN(os::audio::detail)

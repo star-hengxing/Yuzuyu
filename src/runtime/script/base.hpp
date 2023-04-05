@@ -8,7 +8,7 @@ import <vector>;
 #include <vector>
 #endif
 
-#include <runtime/helper/unsafe/bounded_array.hpp>
+#include <runtime/base/unsafe/bounded_array.hpp>
 
 NAMESPACE_BEGIN(script::detail)
 

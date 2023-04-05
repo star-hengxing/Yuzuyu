@@ -2,7 +2,7 @@
 
 #include <volk.h>
 
-#include <runtime/helper/macro.hpp>
+#include <runtime/base/macro.hpp>
 
 NAMESPACE_BEGIN(vk_create_info)
 

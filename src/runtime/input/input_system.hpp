@@ -6,7 +6,7 @@
 
 #include <SDL2/SDL.h>
 
-#include <runtime/helper/basic.hpp>
+#include <runtime/base/base.hpp>
 
 NAMESPACE_BEGIN(input)
 

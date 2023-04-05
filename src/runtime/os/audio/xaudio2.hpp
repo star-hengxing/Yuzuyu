@@ -5,7 +5,7 @@
 #include <functional>
 #include <XAudio2.h>
 
-#include <runtime/helper/Owned.hpp>
+#include <runtime/base/Owned.hpp>
 #include "base.hpp"
 
 NAMESPACE_BEGIN(os::audio::detail)

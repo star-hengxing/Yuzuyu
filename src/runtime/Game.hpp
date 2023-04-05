@@ -1,7 +1,7 @@
 #pragma once
 
 #include <runtime/window/sdl.hpp>
-#include <runtime/helper/Owned.hpp>
+#include <runtime/base/Owned.hpp>
 
 NAMESPACE_BEGIN(runtime)
 

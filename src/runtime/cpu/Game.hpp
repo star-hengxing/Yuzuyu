@@ -6,7 +6,7 @@ import <vector>;
 #include <vector>
 #endif
 
-#include <runtime/helper/Owned.hpp>
+#include <runtime/base/Owned.hpp>
 #include <runtime/input/input_system.hpp>
 #include <runtime/window/sdl.hpp>
 #include "Renderer.hpp"

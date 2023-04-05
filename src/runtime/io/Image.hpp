@@ -8,9 +8,9 @@ import <string_view>;
 
 #include <tl/expected.hpp>
 
-#include <runtime/helper/unsafe/view2D.hpp>
-#include <runtime/helper/Color.hpp>
-#include <runtime/helper/Owned.hpp>
+#include <runtime/base/unsafe/view2D.hpp>
+#include <runtime/base/Color.hpp>
+#include <runtime/base/Owned.hpp>
 
 struct Image
 {

@@ -10,7 +10,7 @@ import <vector>;
 #include <vector>
 #endif
 
-#include <runtime/helper/macro.hpp>
+#include <runtime/base/macro.hpp>
 
 NAMESPACE_BEGIN(os)
 // @note find file in path. example: "src/*.cpp" "src/**.cpp".

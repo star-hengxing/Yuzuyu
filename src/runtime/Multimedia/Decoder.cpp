@@ -4,7 +4,7 @@
 // }
 #include <fast_io.h>
 
-#include <runtime/helper/debug.hpp>
+#include <runtime/base/debug.hpp>
 #include "Decoder.hpp"
 
 NAMESPACE_BEGIN(Multimedia::detail)

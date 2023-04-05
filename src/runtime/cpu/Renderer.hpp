@@ -1,8 +1,8 @@
 #pragma once
 
-#include <runtime/helper/unsafe/view2D.hpp>
-#include <runtime/helper/Owned.hpp>
-#include <runtime/helper/Color.hpp>
+#include <runtime/base/unsafe/view2D.hpp>
+#include <runtime/base/Owned.hpp>
+#include <runtime/base/Color.hpp>
 
 NAMESPACE_BEGIN(render)
 

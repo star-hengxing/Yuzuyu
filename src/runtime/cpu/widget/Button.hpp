@@ -1,6 +1,6 @@
 #pragma once
 
-#include <runtime/helper/Color.hpp>
+#include <runtime/base/Color.hpp>
 #include <runtime/io/Image.hpp>
 
 NAMESPACE_BEGIN(widget)

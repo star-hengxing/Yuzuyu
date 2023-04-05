@@ -8,7 +8,7 @@ import <compare>;
 #include <compare>
 #endif
 
-#include "basic.hpp"
+#include "base.hpp"
 
 template <typename T>
 constexpr auto max_number() -> T

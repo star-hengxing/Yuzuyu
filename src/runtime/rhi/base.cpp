@@ -4,7 +4,7 @@
 
 #include <config.hpp>
 #include "vulkan.hpp"
-#include "helper.hpp"
+#include "base.hpp"
 
 auto check_vulkan_result(VkResult result, const std::source_location location)
     -> void

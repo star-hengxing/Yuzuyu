@@ -4,7 +4,7 @@
 #include <queue>
 #include <mutex>
 
-#include <runtime/helper/Owned.hpp>
+#include <runtime/base/Owned.hpp>
 #include <runtime/os/audio.hpp>
 #include "Decoder.hpp"
 

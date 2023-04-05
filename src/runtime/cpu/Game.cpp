@@ -6,7 +6,7 @@
 
 #include <fast_io.h>
 
-#include <runtime/helper/fps_counter.hpp>
+#include <runtime/base/fps_counter.hpp>
 #include <runtime/io/Image.hpp>
 #include "Game.hpp"
 

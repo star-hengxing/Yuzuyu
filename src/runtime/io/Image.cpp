@@ -12,7 +12,7 @@ import <string>;
 #include <stb_image_resize.h>
 #include <fast_io.h>
 
-#include <runtime/helper/range.hpp>
+#include <runtime/base/range.hpp>
 #include "Image.hpp"
 
 auto Image::write(const std::string_view filename) const -> std::string

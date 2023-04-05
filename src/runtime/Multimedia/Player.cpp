@@ -3,7 +3,7 @@
 
 #include <fast_io.h>
 
-#include <runtime/helper/debug.hpp>
+#include <runtime/base/debug.hpp>
 #include <runtime/os/os.hpp>
 #include "Player.hpp"
 

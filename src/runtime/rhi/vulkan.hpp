@@ -10,8 +10,7 @@ import <vector>;
 
 #include <runtime/window/sdl.hpp>
 
-NAMESPACE_BEGIN(runtime)
-NAMESPACE_BEGIN(rhi)
+NAMESPACE_BEGIN(runtime::rhi)
 
 struct vulkan
 {
@@ -94,5 +93,4 @@ public:
     auto clean() -> void;
 };
 
-NAMESPACE_END(rhi)
-NAMESPACE_END(runtime)
+NAMESPACE_END(runtime::rhi)
