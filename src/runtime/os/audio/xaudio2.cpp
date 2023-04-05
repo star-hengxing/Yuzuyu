@@ -55,6 +55,7 @@ auto Xaudio2::start() noexcept -> bool
         return false;
     }
 
+    index = 0;
     is_play = true;
     condition.notify_one();
     return true;
@@ -62,22 +63,20 @@ auto Xaudio2::start() noexcept -> bool
 
 auto Xaudio2::end() noexcept -> bool
 {
-    // set XAUDIO2_VOICE_STATE SamplesPlayed zero
-    // https://stackoverflow.com/questions/65754955/how-to-reset-a-ixaudio2sourcevoices-samplesplayed-counter-after-flushing-sour
-    // auto buffer = XAUDIO2_BUFFER{};
-    // buffer.Flags = XAUDIO2_END_OF_STREAM;
-    // buffer.pAudioData = ring_buffer.get() + index * MAX_SINGLE_BUFFER_SIZE;
-    // buffer.AudioBytes = 1;
-
-    // but crash
-    // if (FAILED(source->SubmitSourceBuffer(&buffer)))
-    //     return false;
-
     {
         std::lock_guard lock{mutex};
         is_play = false;
+        // set XAUDIO2_VOICE_STATE SamplesPlayed zero
+        // https://stackoverflow.com/questions/65754955/how-to-reset-a-ixaudio2sourcevoices-samplesplayed-counter-after-flushing-sour
+        auto buffer = XAUDIO2_BUFFER{};
+        buffer.Flags = XAUDIO2_END_OF_STREAM;
+        buffer.pAudioData = ring_buffer.get() + index * MAX_SINGLE_BUFFER_SIZE;
+        // must be aligned to 4 bytes, otherwise XAudio2 will fail
+        buffer.AudioBytes = 4;
+
+        if (FAILED(source->SubmitSourceBuffer(&buffer)))
+            return false;
     }
-    index = 0;
     return SUCCEEDED(source->Stop(0));
 }
 
