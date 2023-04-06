@@ -1,17 +1,10 @@
 #pragma once
 
-#ifdef USE_MODULES
-import <tuple>;
-#else
-#include <tuple>
-#endif
-
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_vulkan.h>
 
 #include "window_system.hpp"
 
-NAMESPACE_BEGIN(runtime)
 NAMESPACE_BEGIN(window)
 
 struct sdl_system
@@ -27,28 +20,27 @@ public:
     ~sdl_system();
     // if success return null pointer, otherwise return the error message string
     [[nodiscard]]
-    auto initialize(const Config& config) -> const char*;
+    auto initialize(const Config& config) noexcept -> const char*;
     // wait for window work
-    auto resized() -> std::tuple<u16, u16>;
+    auto resized() noexcept -> Rect2D;
 
-    auto clean() -> void;
+    auto clean() noexcept -> void;
 
-    auto set_title(const char* title) -> void;
+    auto set_title(const char* title) noexcept -> void;
 
-    auto create_surface(VkInstance instance) -> VkSurfaceKHR;
+    auto create_surface(VkInstance instance) noexcept -> VkSurfaceKHR;
 
-    auto present(void* framebuffer) -> void;
+    auto present(void* framebuffer) noexcept -> void;
 
-    auto get_window() const -> decltype(window)
+    auto get_window() const noexcept -> decltype(window)
     {
         return window;
     }
 
-    auto get_window_size() const -> std::tuple<u16, u16>
+    auto get_window_size() const noexcept -> Rect2D
     {
         return {width, height};
     }
 };
 
 NAMESPACE_END(window)
-NAMESPACE_END(runtime)

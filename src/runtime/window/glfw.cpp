@@ -1,6 +1,5 @@
 #include "glfw.hpp"
 
-NAMESPACE_BEGIN(runtime)
 NAMESPACE_BEGIN(window)
 
 glfw_system::~glfw_system()
@@ -12,7 +11,7 @@ glfw_system::~glfw_system()
     }
 }
 
-auto glfw_system::clean() -> void
+auto glfw_system::clean() noexcept -> void
 {
     if (window)
     {
@@ -22,7 +21,7 @@ auto glfw_system::clean() -> void
     }
 }
 
-auto glfw_system::initialize(const Config& config) -> const char*
+auto glfw_system::initialize(const Config& config) noexcept -> const char*
 {
     if (glfwInit() == 0)
     {
@@ -47,7 +46,7 @@ auto glfw_system::initialize(const Config& config) -> const char*
     return nullptr;
 }
 
-auto glfw_system::resized() -> std::tuple<u16, u16>
+auto glfw_system::resized() noexcept -> Rect2D
 {
     int w = 0, h = 0;
     glfwGetFramebufferSize(window, &w, &h);
@@ -63,7 +62,8 @@ auto glfw_system::resized() -> std::tuple<u16, u16>
     return {width, height};
 }
 
-auto glfw_system::create_surface(VkInstance instance, const VkAllocationCallbacks* allocator)
+auto glfw_system::create_surface(VkInstance instance,
+    const VkAllocationCallbacks* allocator) noexcept
     -> VkSurfaceKHR
 {
     VkSurfaceKHR surface;
@@ -72,4 +72,3 @@ auto glfw_system::create_surface(VkInstance instance, const VkAllocationCallback
 }
 
 NAMESPACE_END(window)
-NAMESPACE_END(runtime)

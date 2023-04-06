@@ -11,8 +11,8 @@ auto main(int argc, char** argv) -> int
     // auto player = Multimedia::Player{argv[1]};
     auto player = Multimedia::Player{"A:/resource/video/ping-pong.mp4"};
 
-    runtime::window::Config config;
-    runtime::window::sdl_system window_system;
+    ::window::Config config;
+    ::window::sdl_system window_system;
 
     const auto [width, height] = player.get_video_info();
     config.width = width;

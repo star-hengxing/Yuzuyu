@@ -1,8 +1,8 @@
 #pragma once
 
 #include <config.hpp>
+#include <runtime/base/Rect2D.hpp>
 
-NAMESPACE_BEGIN(runtime)
 NAMESPACE_BEGIN(window)
 
 struct Config
@@ -14,4 +14,3 @@ struct Config
 };
 
 NAMESPACE_END(window)
-NAMESPACE_END(runtime)

@@ -3,7 +3,6 @@
 #include <runtime/base/range.hpp>
 #include "sdl.hpp"
 
-NAMESPACE_BEGIN(runtime)
 NAMESPACE_BEGIN(window)
 
 sdl_system::~sdl_system()
@@ -21,7 +20,7 @@ sdl_system::~sdl_system()
     SDL_Quit();
 }
 
-auto sdl_system::clean() -> void
+auto sdl_system::clean() noexcept -> void
 {
     if (surface)
     {
@@ -38,7 +37,7 @@ auto sdl_system::clean() -> void
     SDL_Quit();
 }
 
-auto sdl_system::initialize(const Config& config) -> const char*
+auto sdl_system::initialize(const Config& config) noexcept -> const char*
 {
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
@@ -65,17 +64,17 @@ auto sdl_system::initialize(const Config& config) -> const char*
     return nullptr;
 }
 
-auto sdl_system::set_title(const char* title) -> void
+auto sdl_system::set_title(const char* title) noexcept -> void
 {
     SDL_SetWindowTitle(window, title);
 }
 
-auto sdl_system::resized() -> std::tuple<u16, u16>
+auto sdl_system::resized() noexcept -> Rect2D
 {
     return {width, height};
 }
 
-auto sdl_system::create_surface(VkInstance instance)
+auto sdl_system::create_surface(VkInstance instance) noexcept
     -> VkSurfaceKHR
 {
     VkSurfaceKHR surface;
@@ -83,10 +82,8 @@ auto sdl_system::create_surface(VkInstance instance)
     return result ? surface : nullptr;
 }
 
-auto sdl_system::present(void* framebuffer) -> void
+auto sdl_system::present(void* framebuffer) noexcept -> void
 {
-    SDL_LockSurface(surface);
-
     const auto size = surface->w * surface->h * 4;
 #ifdef _WIN32
     const auto dst = static_cast<u8*>(surface->pixels);
@@ -102,7 +99,6 @@ auto sdl_system::present(void* framebuffer) -> void
     // TODO: use simd
     memcpy(surface->pixels, framebuffer, size);
 #endif
-    SDL_UnlockSurface(surface);
     const auto result = SDL_UpdateWindowSurface(window);
 
     if (result != 0) [[unlikely]]
@@ -112,4 +108,3 @@ auto sdl_system::present(void* framebuffer) -> void
 }
 
 NAMESPACE_END(window)
-NAMESPACE_END(runtime)
