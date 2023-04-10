@@ -5,12 +5,11 @@ import <string_view>;
 #endif
 
 #include <fast_io.h>
-// #include <spdlog/spdlog.h>
 
 #include <runtime/base/range.hpp>
-#include <runtime/rhi/vulkan.hpp>
-#include "Game.hpp"
 #include <config.hpp>
+#include "Game.hpp"
+
 using namespace Game;
 
 NAMESPACE_BEGIN()
@@ -20,7 +19,6 @@ auto check_message(const char* message) -> void
     if (message)
     {
         println(message);
-        // spdlog::error("{}", message);
         exit(-1);
     }
 }
@@ -47,10 +45,6 @@ auto Game::initialize() -> void
     config.title = "Game";
 
     message = window.initialize(config);
-    check_message(message);
-
-    runtime::rhi::vulkan rhi;
-    message = rhi.initialize(&window);
     check_message(message);
 }
 

@@ -1,8 +1,13 @@
 -- dev
 
 -- vulkan
-add_requires("volk")
+if has_config("volk") then
+    add_requires("volk", {configs = {header_only = true}})
+else
+    add_requires("vulkansdk")
+end
 add_requires("vk-bootstrap v0.7")
+add_requires("vulkan-memory-allocator")
 -- cross-platform window
 add_requires("glfw")
 add_requires("libsdl")

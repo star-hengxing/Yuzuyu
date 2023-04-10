@@ -38,7 +38,13 @@ target("window")
     add_defines("GLFW_INCLUDE_VULKAN")
 
     add_packages("fast_io")
-    add_packages("glfw", "libsdl", "volk", {public = true})
+    add_packages("glfw", "libsdl", {public = true})
+    if has_config("volk") then
+        add_options("volk")
+        add_packages("volk", {public = true})
+    else
+        add_packages("vulkansdk", {public = true})
+    end
 target_end()
 
 target("rhi")
@@ -46,11 +52,18 @@ target("rhi")
     add_rules("module.component")
     add_files("rhi/*.cpp")
 
-    add_deps("window", "shader")
-    add_packages("spdlog", "vk-bootstrap")
-
     if is_mode("release") then
         add_defines("VK_BOOTSTRAP_WERROR")
+    end
+
+    add_deps("window", "shader")
+    add_packages("spdlog", "fast_io", "vk-bootstrap")
+    add_packages("vulkan-memory-allocator", {public = true})
+    if has_config("volk") then
+        add_options("volk")
+        add_packages("volk", {public = true})
+    else
+        add_packages("vulkansdk", {public = true})
     end
 target_end()
 

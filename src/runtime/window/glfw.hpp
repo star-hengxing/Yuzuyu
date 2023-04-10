@@ -1,6 +1,5 @@
 #pragma once
 
-#include <volk.h>
 #include <GLFW/glfw3.h>
 
 #include "window_system.hpp"
