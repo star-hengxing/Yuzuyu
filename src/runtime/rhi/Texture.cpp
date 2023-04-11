@@ -30,31 +30,7 @@ Texture::Texture(Device* device, const create_info& info) : info{info}
         device->allocator,
         &image_info, &vma_info,
         &image, &allocation, VK_NULL_HANDLE));
-}
 
-Texture::Texture(Device* device, Swapchain* swapchain)
-    :   device{device}, image{swapchain->images[swapchain->frame_index]},
-        is_swapchain_buffer{true}
-{
-    info.width  = static_cast<u32>(swapchain->extent.width);
-    info.height = static_cast<u32>(swapchain->extent.height);
-}
-
-Texture::~Texture()
-{
-    if (image && !is_swapchain_buffer)
-    {
-        vmaDestroyImage(device->allocator, image, allocation);
-    }
-}
-
-auto Texture::get_size() const noexcept -> Rect2D
-{
-    return {info.width, info.height};
-}
-
-auto Texture::get_view() const noexcept -> VkImageView
-{
     const auto subresource = VkImageSubresourceRange
     {
         .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
@@ -80,10 +56,37 @@ auto Texture::get_view() const noexcept -> VkImageView
         .subresourceRange = subresource,
     };
 
-    VkImageView view;
-    const auto result = vkCreateImageView(device->handle, &view_info, nullptr, &view);
-    CHECK_RESULT(result);
-    return (result == VK_SUCCESS) ? view : VK_NULL_HANDLE;
+    CHECK_RESULT(vkCreateImageView(device->handle, &view_info, nullptr, &view));
+}
+
+Texture::Texture(const Swapchain& swapchain)
+    :   image{swapchain.images[swapchain.frame_index]},
+        view{swapchain.image_views[swapchain.frame_index]},
+        is_swapchain_buffer{true}
+{
+    info.width  = static_cast<u32>(swapchain.extent.width);
+    info.height = static_cast<u32>(swapchain.extent.height);
+}
+
+Texture::~Texture()
+{
+    if (!is_swapchain_buffer)
+    {
+        if (image)
+        {
+            vmaDestroyImage(device->allocator, image, allocation);
+        }
+
+        if (view)
+        {
+            vkDestroyImageView(device->handle, view, VK_NULL_HANDLE);
+        }
+    }
+}
+
+auto Texture::get_size() const noexcept -> Rect2D
+{
+    return {info.width, info.height};
 }
 
 NAMESPACE_END(rhi)

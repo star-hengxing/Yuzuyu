@@ -25,15 +25,12 @@ public:
             return 0;
         }
 
-        // for (auto i : buffer)
-        // {
-        //     i = 0;
-        // }
         time = posix_clock_gettime(fast_io::posix_clock_id::realtime);
 
         view.clear();
+        std::memset(buffer, 0, std::size(buffer));
         print(view, "fps: ", fps);
-        f(buffer);
+        std::invoke(f, buffer);
 
         const auto ret = fps;
         fps = 0;

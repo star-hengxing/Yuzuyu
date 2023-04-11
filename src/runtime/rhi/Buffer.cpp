@@ -5,9 +5,9 @@ NAMESPACE_BEGIN(rhi)
 
 Buffer::~Buffer()
 {
-    if (buffer && allocation)
+    if (handle && allocation)
     {
-        vmaDestroyBuffer(device->allocator, buffer, allocation);
+        vmaDestroyBuffer(device->allocator, handle, allocation);
     }
 }
 
@@ -26,7 +26,7 @@ Buffer::Buffer(Device* device, usize size, VkBufferUsageFlags flags, VmaMemoryUs
         .usage = type,
     };
 
-    CHECK_RESULT(vmaCreateBuffer(device->allocator, &buffer_info, &vma_info, &buffer, &allocation, VK_NULL_HANDLE));
+    CHECK_RESULT(vmaCreateBuffer(device->allocator, &buffer_info, &vma_info, &handle, &allocation, VK_NULL_HANDLE));
 }
 
 auto Buffer::map() noexcept -> u8*

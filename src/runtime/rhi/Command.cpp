@@ -54,11 +54,36 @@ auto Command::end() noexcept -> void
     CHECK_RESULT(vkEndCommandBuffer(command));
 }
 
-auto Command::begin_renderpass() noexcept -> void
+auto Command::begin_renderpass(const Target& target) noexcept -> void
 {
+    const auto value = VkClearColorValue
+    {
+        {
+            target.clear_color.r,
+            target.clear_color.g,
+            target.clear_color.b,
+            target.clear_color.a,
+        }
+    };
+
+    const auto attachment = VkRenderingAttachmentInfo
+    {
+        .sType       = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+        .imageView   = target.view,
+        .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        .loadOp      = target.begin,
+        .storeOp     = target.end,
+        .clearValue  = {.color = value},
+    };
+
+    const auto extent = VkExtent2D{target.rect.width, target.rect.height};
     const auto info = VkRenderingInfo
     {
-        .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
+        .sType                = VK_STRUCTURE_TYPE_RENDERING_INFO,
+        .renderArea           = {.offset = {}, .extent = extent},
+        .layerCount           = 1,
+        .colorAttachmentCount = 1,
+        .pColorAttachments    = &attachment,
     };
 
     vkCmdBeginRendering(command, &info);
@@ -89,7 +114,54 @@ auto Command::set_scissor(u32 width, u32 height, i32 offset_x, i32 offset_y) noe
     vkCmdSetScissor(command, 0, 1, &rect);
 }
 
-auto Command::copy_buffer_to_texture(Buffer* src, Texture* dst) noexcept -> void
+auto Command::bind_vertex_buffer(u32 binding, const Buffer& buffer) noexcept -> void
+{
+    auto offset = usize{};
+    vkCmdBindVertexBuffers(command, binding, 1, &buffer.handle, &offset);
+}
+
+auto Command::bind_index_buffer(const Buffer& buffer, bool is_u16) noexcept -> void
+{
+    vkCmdBindIndexBuffer(command, buffer.handle, 0, is_u16 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
+}
+
+auto Command::bind_pipeline(const Pipeline& pipeline) noexcept -> void
+{
+    vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.handle);
+}
+
+auto Command::draw(u32 vertex_count, u32 instance_count, u32 first_vertex, u32 first_instance) noexcept
+    -> void
+{
+    vkCmdDraw(command, vertex_count, instance_count, first_vertex, first_instance);
+}
+
+auto Command::draw_indirect(const Buffer& buffer, size_t offset, u32 draw_count, u32 stride) noexcept -> void
+{
+    vkCmdDrawIndirect(command, buffer.handle, offset, draw_count, stride);
+}
+
+auto Command::draw_indirect_count(const Buffer& buffer, size_t offset, const Buffer& count_buffer, size_t count_buffer_offset, u32 max_draw_count, u32 stride) noexcept -> void
+{
+    vkCmdDrawIndirectCount(command, buffer.handle, offset, count_buffer.handle, count_buffer_offset, max_draw_count, stride);
+}
+
+auto Command::draw_indexed(u32 index_count, u32 instance_count, u32 first_index, u32 vertex_offset, u32 first_instance) noexcept -> void
+{
+    vkCmdDrawIndexed(command, index_count, instance_count, first_index, vertex_offset, first_instance);
+}
+
+auto Command::draw_indexed_indirect(const Buffer& buffer, size_t offset, u32 draw_count, u32 stride) noexcept -> void
+{
+    vkCmdDrawIndexedIndirect(command, buffer.handle, offset, draw_count, stride);
+}
+
+auto Command::draw_indexed_indirect_count(const Buffer& buffer, size_t offset, const Buffer& count_buffer, size_t count_buffer_offset, u32 max_draw_count, u32 stride) noexcept -> void
+{
+    vkCmdDrawIndexedIndirectCount(command, buffer.handle, offset, count_buffer.handle, count_buffer_offset, max_draw_count, stride);
+}
+
+auto Command::copy_buffer_to_texture(const Buffer& src, const Texture& dst) noexcept -> void
 {
     const auto subresource = VkImageSubresourceLayers
     {
@@ -99,7 +171,7 @@ auto Command::copy_buffer_to_texture(Buffer* src, Texture* dst) noexcept -> void
         .layerCount     = 1,
     };
 
-    const auto [width, height] = dst->get_size();
+    const auto [width, height] = dst.get_size();
 
     const auto copy_info = VkBufferImageCopy
     {
@@ -107,10 +179,10 @@ auto Command::copy_buffer_to_texture(Buffer* src, Texture* dst) noexcept -> void
         .imageExtent      = {width, height, 1},
     };
 
-    vkCmdCopyBufferToImage(command, src->buffer, dst->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy_info);
+    vkCmdCopyBufferToImage(command, src.handle, dst.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy_info);
 }
 
-auto Command::copy_texture_to_buffer(Texture* src, Buffer* dst) noexcept -> void
+auto Command::copy_texture_to_buffer(const Texture& src, const Buffer& dst) noexcept -> void
 {
     const auto subresource = VkImageSubresourceLayers
     {
@@ -120,7 +192,7 @@ auto Command::copy_texture_to_buffer(Texture* src, Buffer* dst) noexcept -> void
         .layerCount     = 1,
     };
 
-    const auto [width, height] = src->get_size();
+    const auto [width, height] = src.get_size();
 
     const auto copy_info = VkBufferImageCopy
     {
@@ -128,10 +200,10 @@ auto Command::copy_texture_to_buffer(Texture* src, Buffer* dst) noexcept -> void
         .imageExtent      = {width, height, 1},
     };
 
-    vkCmdCopyImageToBuffer(command, src->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst->buffer, 1, &copy_info);
+    vkCmdCopyImageToBuffer(command, src.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst.handle, 1, &copy_info);
 }
 
-auto Command::copy_buffer_to_buffer(Buffer* src, Buffer* dst,
+auto Command::copy_buffer_to_buffer(const Buffer& src, const Buffer& dst,
     usize size, usize src_offset, usize dst_offset) noexcept -> void
 {
     const auto copy_info = VkBufferCopy
@@ -141,10 +213,10 @@ auto Command::copy_buffer_to_buffer(Buffer* src, Buffer* dst,
         .size      = size,
     };
 
-    vkCmdCopyBuffer(command, src->buffer, dst->buffer, 1, &copy_info);
+    vkCmdCopyBuffer(command, src.handle, dst.handle, 1, &copy_info);
 }
 
-auto Command::convert_buffer_to_image(Buffer* src, Texture* dst) noexcept -> void
+auto Command::convert_buffer_to_image(const Buffer& src, const Texture& dst) noexcept -> void
 {
     const auto subresource = VkImageSubresourceRange
     {
@@ -162,7 +234,7 @@ auto Command::convert_buffer_to_image(Buffer* src, Texture* dst) noexcept -> voi
         .dstAccessMask    = VK_ACCESS_TRANSFER_WRITE_BIT,
         .oldLayout        = VK_IMAGE_LAYOUT_UNDEFINED,
         .newLayout        = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-        .image            = dst->image,
+        .image            = dst.image,
         .subresourceRange = subresource,
     };
 
@@ -173,7 +245,7 @@ auto Command::convert_buffer_to_image(Buffer* src, Texture* dst) noexcept -> voi
         .dstAccessMask    = VK_ACCESS_SHADER_READ_BIT,
         .oldLayout        = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         .newLayout        = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-        .image            = dst->image,
+        .image            = dst.image,
         .subresourceRange = subresource,
     };
 
@@ -198,7 +270,7 @@ auto Command::convert_buffer_to_image(Buffer* src, Texture* dst) noexcept -> voi
         1, &dst_barrier);
 }
 
-auto Command::blit(Texture* src, Texture* dst) noexcept -> void
+auto Command::blit(const Texture& src, const Texture& dst) noexcept -> void
 {
     const auto subresource = VkImageSubresourceLayers
     {
@@ -214,20 +286,20 @@ auto Command::blit(Texture* src, Texture* dst) noexcept -> void
         .srcOffsets =
         {
             {},
-            {static_cast<int>(src->info.width), static_cast<int>(src->info.height), 1},
+            {static_cast<int>(src.info.width), static_cast<int>(src.info.height), 1},
         },
         .dstSubresource = subresource,
         .dstOffsets =
         {
             {},
-            {static_cast<int>(dst->info.width), static_cast<int>(dst->info.height), 1},
+            {static_cast<int>(dst.info.width), static_cast<int>(dst.info.height), 1},
         },
     };
 
     vkCmdBlitImage(
         command,
-        src->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-        dst->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        src.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        dst.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         1, &region,
         VK_FILTER_LINEAR);
 }

@@ -8,7 +8,7 @@ struct Buffer
 {
 public:
     Device* device = nullptr;
-    VkBuffer buffer = VK_NULL_HANDLE;
+    VkBuffer handle = VK_NULL_HANDLE;
     VmaAllocation allocation = VK_NULL_HANDLE;
 
     void* data = nullptr;

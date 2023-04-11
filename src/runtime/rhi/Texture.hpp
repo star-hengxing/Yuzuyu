@@ -19,6 +19,7 @@ public:
 public:
     Device* device = nullptr;
     VkImage image = VK_NULL_HANDLE;
+    VkImageView view = VK_NULL_HANDLE;
     VmaAllocation allocation = VK_NULL_HANDLE;
 
     create_info info;
@@ -27,11 +28,9 @@ public:
 public:
     Texture(Device* device, const create_info& info);
 
-    Texture(Device* device, Swapchain* swapchain);
+    Texture(const Swapchain& swapchain);
 
     ~Texture();
-
-    auto get_view() const noexcept -> VkImageView;
 
     auto get_size() const noexcept -> Rect2D;
 };
