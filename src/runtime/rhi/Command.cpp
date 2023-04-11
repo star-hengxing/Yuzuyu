@@ -3,7 +3,7 @@
 
 NAMESPACE_BEGIN(rhi)
 
-Command::Command(VkDevice device, u32 queue_family)
+Command::Command(VkDevice device, u32 queue_family) : device{device}
 {
     {
         const auto info = VkCommandPoolCreateInfo

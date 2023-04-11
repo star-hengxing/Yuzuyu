@@ -21,6 +21,12 @@ Device::~Device()
 {
     wait_idle();
 
+    for (auto&& fence : queue.fences)
+    {
+        fence.~Fence();
+        fence.handle = VK_NULL_HANDLE;
+    }
+
     if (allocator)
     {
         vmaDestroyAllocator(allocator);
