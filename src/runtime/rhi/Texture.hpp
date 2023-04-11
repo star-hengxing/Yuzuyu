@@ -11,8 +11,8 @@ struct Texture
 public:
     struct create_info
     {
-        u16 width;
-        u16 height;
+        u32 width;
+        u32 height;
         VkImageUsageFlags flags;
     };
 

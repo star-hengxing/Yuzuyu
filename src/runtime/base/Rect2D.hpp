@@ -4,6 +4,6 @@
 
 struct Rect2D
 {
-    u16 width;
-    u16 height;
+    u32 width;
+    u32 height;
 };

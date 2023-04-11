@@ -17,7 +17,7 @@ NAMESPACE_END()
 
 NAMESPACE_BEGIN(render)
 
-auto Renderer::initialize(u16 width, u16 height) -> void
+auto Renderer::initialize(u32 width, u32 height) -> void
 {
     framebuffer = Owned<Color[]>::make_uninitialize(width * height);
     framebuffer_view = {framebuffer.get(), width, height};
@@ -187,7 +187,7 @@ auto Renderer::draw(const draw_config& config) -> void
     }
 }
 
-auto Renderer::draw_text(u16 x_, u16 y_, view_type view) -> void
+auto Renderer::draw_text(u32 x_, u32 y_, view_type view) -> void
 {
     if (x_ >= framebuffer_view.width || y_ >= framebuffer_view.height)
         return;

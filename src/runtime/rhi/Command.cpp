@@ -214,13 +214,13 @@ auto Command::blit(Texture* src, Texture* dst) noexcept -> void
         .srcOffsets =
         {
             {},
-            {src->info.width, src->info.height, 1},
+            {static_cast<int>(src->info.width), static_cast<int>(src->info.height), 1},
         },
         .dstSubresource = subresource,
         .dstOffsets =
         {
             {},
-            {dst->info.width, dst->info.height, 1},
+            {static_cast<int>(dst->info.width), static_cast<int>(dst->info.height), 1},
         },
     };
 

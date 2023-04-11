@@ -8,10 +8,10 @@ NAMESPACE_BEGIN(render)
 
 struct draw_config
 {
-    u16 x1 = 0;
-    u16 y1 = 0;
-    u16 x2 = 0;
-    u16 y2 = 0;
+    u32 x1 = 0;
+    u32 y1 = 0;
+    u32 x2 = 0;
+    u32 y2 = 0;
     f32 opacity = 1;
     Color color = color_space::black;
 };
@@ -20,7 +20,7 @@ struct Renderer
 {
 private:
     using type = isize;
-    using view_type = unsafe::view2D<Color, u16>;
+    using view_type = unsafe::view2D<Color, u32>;
 
 public:
     Owned<Color[]> framebuffer;
@@ -36,7 +36,7 @@ private:
 public:
     Renderer() {}
 
-    auto initialize(u16 width, u16 height) -> void;
+    auto initialize(u32 width, u32 height) -> void;
     // clear framebuffer
     auto clear(const Color color) -> void;
     // use background image to fill framebuffer
@@ -44,7 +44,7 @@ public:
 
     auto draw(const draw_config& config) -> void;
 
-    auto draw_text(u16 x, u16 y, view_type view) -> void;
+    auto draw_text(u32 x, u32 y, view_type view) -> void;
 };
 
 NAMESPACE_END(render)

@@ -25,7 +25,7 @@ auto Image::get_view() const noexcept -> view
     return {data.get(), width, height};
 }
 
-auto Image::resize(u16 width, u16 height) -> std::string
+auto Image::resize(u32 width, u32 height) -> std::string
 {
     auto tmp = Image::create(width, height);
     const int result = stbir_resize_uint8(
@@ -51,7 +51,7 @@ auto Image::swap(Self& other) noexcept -> Self&
     return *this;
 }
 
-auto Image::create(u16 width, u16 height) noexcept -> Self
+auto Image::create(u32 width, u32 height) noexcept -> Self
 {
     return {new type[width * height], width, height};
 }
@@ -100,7 +100,7 @@ auto read_to_image(const std::string_view filename) -> tl::expected<Image, std::
     return {std::move(image)};
 }
 
-auto write_image(const std::string_view filename, const u8* data, u16 width, u16 height)
+auto write_image(const std::string_view filename, const u8* data, u32 width, u32 height)
     -> std::string
 {
     int error;

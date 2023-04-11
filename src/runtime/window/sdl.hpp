@@ -10,8 +10,8 @@ NAMESPACE_BEGIN(window)
 struct sdl_system
 {
 private:
-    u16 width;
-    u16 height;
+    u32 width;
+    u32 height;
     SDL_Window* window = nullptr;
     SDL_Surface* surface = nullptr;
 

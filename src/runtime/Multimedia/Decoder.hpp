@@ -84,7 +84,7 @@ public:
      * @param packet move packet ownership
      * @param[out] buffer format: rgba rgba...
      */
-    auto video_decode(AVPacket* packet, u8* buffer, u16 width, u16 height) noexcept -> bool;
+    auto video_decode(AVPacket* packet, u8* buffer, u32 width, u32 height) noexcept -> bool;
     /**
      * @param packet move packet ownership
      * @param[out] buffer

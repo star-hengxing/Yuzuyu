@@ -36,8 +36,8 @@ Texture::Texture(Device* device, Swapchain* swapchain)
     :   device{device}, image{swapchain->images[swapchain->frame_index]},
         is_swapchain_buffer{true}
 {
-    info.width  = static_cast<u16>(swapchain->extent.width);
-    info.height = static_cast<u16>(swapchain->extent.height);
+    info.width  = static_cast<u32>(swapchain->extent.width);
+    info.height = static_cast<u32>(swapchain->extent.height);
 }
 
 Texture::~Texture()

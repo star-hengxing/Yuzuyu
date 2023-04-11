@@ -145,7 +145,7 @@ auto Decoder::initialize(const std::string_view filename) noexcept -> bool
 }
 
 auto Decoder::video_decode(
-    AVPacket* packet, u8* buffer, u16 width, u16 height) noexcept -> bool
+    AVPacket* packet, u8* buffer, u32 width, u32 height) noexcept -> bool
 {
     if (avcodec_send_packet(video_payload.context, packet) != 0)
         return false;
@@ -246,8 +246,8 @@ auto Decoder::get_video_info() const noexcept -> Rect2D
     const auto avc = video_payload.context;
     return
     {
-        static_cast<u16>(avc->width),
-        static_cast<u16>(avc->height)
+        static_cast<u32>(avc->width),
+        static_cast<u32>(avc->height)
     };
 }
 

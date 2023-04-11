@@ -9,8 +9,8 @@ NAMESPACE_BEGIN(window)
 struct glfw_system
 {
 private:
-    u16 width;
-    u16 height;
+    u32 width;
+    u32 height;
     GLFWwindow* window = nullptr;
     // VkSurfaceKHR surface = nullptr;
 

@@ -7,10 +7,10 @@ NAMESPACE_BEGIN(widget)
 
 struct Button
 {
-    u16 x1 = 0;
-    u16 y1 = 0;
-    u16 x2 = 0;
-    u16 y2 = 0;
+    u32 x1 = 0;
+    u32 y1 = 0;
+    u32 x2 = 0;
+    u32 y2 = 0;
     // Vec2 Size;
     // Vec2 TexSize;
     // std::string Text;
@@ -21,7 +21,7 @@ struct Button
     bool visible = false;
     bool is_click = false;
 
-    auto is_mouse_hovering(u16 x, u16 y) -> bool
+    auto is_mouse_hovering(u32 x, u32 y) -> bool
     {
         return (x >= x1 && x <= x2) && (y >= y1 && y <= y2);
     }
