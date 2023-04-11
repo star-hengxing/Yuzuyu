@@ -45,16 +45,16 @@ auto Buffer::flush() noexcept -> void
     vmaFlushAllocation(device->allocator, allocation, 0, size);
 }
 
-auto Buffer::cpu_to_gpu(const u8* data, usize size, usize offset) noexcept -> void
+auto Buffer::cpu_to_gpu(const u8* data, usize size_, usize offset) noexcept -> void
 {
-    std::memcpy(map() + offset, data, size);
+    std::memcpy(map() + offset, data, size_);
     flush();
     unmap();
 }
 
-auto Buffer::gpu_to_cpu(u8* data, usize size, usize offset) noexcept -> void
+auto Buffer::gpu_to_cpu(u8* data, usize size_, usize offset) noexcept -> void
 {
-    std::memcpy(data, map() + offset, size);
+    std::memcpy(data, map() + offset, size_);
     flush();
     unmap();
 }

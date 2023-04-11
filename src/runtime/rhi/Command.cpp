@@ -144,4 +144,92 @@ auto Command::copy_buffer_to_buffer(Buffer* src, Buffer* dst,
     vkCmdCopyBuffer(command, src->buffer, dst->buffer, 1, &copy_info);
 }
 
+auto Command::convert_buffer_to_image(Buffer* src, Texture* dst) noexcept -> void
+{
+    const auto subresource = VkImageSubresourceRange
+    {
+        .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
+        .baseMipLevel   = 0,
+        .levelCount     = 1,
+        .baseArrayLayer = 0,
+        .layerCount     = 1,
+    };
+
+    const auto src_barrier = VkImageMemoryBarrier
+    {
+        .sType            = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        .srcAccessMask    = 0,
+        .dstAccessMask    = VK_ACCESS_TRANSFER_WRITE_BIT,
+        .oldLayout        = VK_IMAGE_LAYOUT_UNDEFINED,
+        .newLayout        = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        .image            = dst->image,
+        .subresourceRange = subresource,
+    };
+
+    const auto dst_barrier = VkImageMemoryBarrier
+    {
+        .sType            = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        .srcAccessMask    = VK_ACCESS_TRANSFER_WRITE_BIT,
+        .dstAccessMask    = VK_ACCESS_SHADER_READ_BIT,
+        .oldLayout        = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        .newLayout        = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+        .image            = dst->image,
+        .subresourceRange = subresource,
+    };
+
+    vkCmdPipelineBarrier(
+        command,
+        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+        VK_PIPELINE_STAGE_TRANSFER_BIT,
+        0,
+        0, nullptr,
+        0, nullptr,
+        1, &src_barrier);
+
+    copy_buffer_to_texture(src, dst);
+
+    vkCmdPipelineBarrier(
+        command,
+        VK_PIPELINE_STAGE_TRANSFER_BIT,
+        VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+        0,
+        0, nullptr,
+        0, nullptr,
+        1, &dst_barrier);
+}
+
+auto Command::blit(Texture* src, Texture* dst) noexcept -> void
+{
+    const auto subresource = VkImageSubresourceLayers
+    {
+        .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
+        .mipLevel       = 0,
+        .baseArrayLayer = 0,
+        .layerCount     = 1,
+    };
+
+    const auto region = VkImageBlit
+    {
+        .srcSubresource = subresource,
+        .srcOffsets =
+        {
+            {},
+            {src->info.width, src->info.height, 1},
+        },
+        .dstSubresource = subresource,
+        .dstOffsets =
+        {
+            {},
+            {dst->info.width, dst->info.height, 1},
+        },
+    };
+
+    vkCmdBlitImage(
+        command,
+        src->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        dst->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        1, &region,
+        VK_FILTER_LINEAR);
+}
+
 NAMESPACE_END(rhi)

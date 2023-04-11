@@ -30,6 +30,10 @@ public:
     auto copy_texture_to_buffer(Texture* src, Buffer* dst) noexcept -> void;
     auto copy_buffer_to_buffer(Buffer* src, Buffer* dst,
         usize size, usize src_offset, usize dst_offset) noexcept -> void;
+
+    auto convert_buffer_to_image(Buffer* src, Texture* dst) noexcept -> void;
+
+    auto blit(Texture* src, Texture* dst) noexcept -> void;
 };
 
 NAMESPACE_END(rhi)
