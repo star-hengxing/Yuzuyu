@@ -128,6 +128,11 @@ auto Command::bind_index_buffer(const Buffer& buffer, bool is_u16) noexcept -> v
 auto Command::bind_pipeline(const Pipeline& pipeline) noexcept -> void
 {
     vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.handle);
+    if (!pipeline.constant.empty())
+    {
+        const auto [size, ptr, type] = pipeline.constant;
+        vkCmdPushConstants(command, pipeline.layout, type, 0, size, ptr);
+    }
 }
 
 auto Command::draw(u32 vertex_count, u32 instance_count, u32 first_vertex, u32 first_instance) noexcept

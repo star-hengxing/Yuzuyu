@@ -153,11 +153,28 @@ Pipeline::Pipeline(VkDevice device, const create_info& info) : device{device}
     };
     pipeline_info.pNext = &rendering_info;
 
-    const auto pipeline_layout_info = VkPipelineLayoutCreateInfo
+    auto pipeline_layout_info = VkPipelineLayoutCreateInfo
     {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
     };
-    CHECK_RESULT(vkCreatePipelineLayout(device, &pipeline_layout_info, nullptr, &layout));
+
+    if (info.constant.empty())
+    {
+        CHECK_RESULT(vkCreatePipelineLayout(device, &pipeline_layout_info, nullptr, &layout));
+    }
+    else
+    {
+        this->constant = info.constant;
+        const auto push_constant = VkPushConstantRange
+        {
+            .stageFlags = info.constant.type,
+            .offset     = 0,
+            .size       = info.constant.size,
+        };
+        pipeline_layout_info.pushConstantRangeCount = 1;
+        pipeline_layout_info.pPushConstantRanges = &push_constant;
+        CHECK_RESULT(vkCreatePipelineLayout(device, &pipeline_layout_info, nullptr, &layout));
+    }
     pipeline_info.layout = layout;
 
     CHECK_RESULT(vkCreateGraphicsPipelines(

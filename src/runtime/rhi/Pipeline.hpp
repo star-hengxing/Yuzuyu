@@ -10,19 +10,33 @@ import <string_view>;
 
 NAMESPACE_BEGIN(rhi)
 
+struct push_constants
+{
+    u32 size = 0;
+    void* ptr = nullptr;
+    VkShaderStageFlags type = VK_SHADER_STAGE_VERTEX_BIT;
+
+    auto empty() const noexcept -> bool
+    {
+        return size == 0 || !ptr;
+    }
+};
+
 struct Pipeline
 {
 public:
     struct create_info
     {
-        Target* target;
+        Target* target = nullptr;
         std::string_view vertex, fragment;
+        push_constants constant;
     };
 
 public:
     VkDevice device = VK_NULL_HANDLE;
     VkPipeline handle = VK_NULL_HANDLE;
     VkPipelineLayout layout = VK_NULL_HANDLE;
+    push_constants constant;
 
 public:
     Pipeline() {}
