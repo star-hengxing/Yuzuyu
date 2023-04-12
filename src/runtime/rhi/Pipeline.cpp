@@ -21,6 +21,14 @@ NAMESPACE_BEGIN(rhi)
 
 Pipeline::~Pipeline()
 {
+    for (auto&& i : descriptor_set_layouts)
+    {
+        if (i)
+        {
+            vkDestroyDescriptorSetLayout(device, i, VK_NULL_HANDLE);
+        }
+    }
+
     if (layout)
     {
         vkDestroyPipelineLayout(device, layout, VK_NULL_HANDLE);
@@ -57,8 +65,8 @@ Pipeline::Pipeline(VkDevice device, const create_info& info) : device{device}
 
     const auto input_asm_state_info = VkPipelineInputAssemblyStateCreateInfo
     {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-        .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+        .sType                  = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+        .topology               = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
         .primitiveRestartEnable = VK_FALSE,
     };
     pipeline_info.pInputAssemblyState = &input_asm_state_info;
@@ -108,12 +116,6 @@ Pipeline::Pipeline(VkDevice device, const create_info& info) : device{device}
     };
     pipeline_info.pMultisampleState = &multismple_state_info;
 
-    const auto color_blend_attachment_state = VkPipelineColorBlendAttachmentState 
-    {
-        .blendEnable = VK_FALSE,
-        .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
-    };
-
     const auto depth_stencil_state = VkPipelineDepthStencilStateCreateInfo
     {
         .sType           = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
@@ -121,13 +123,19 @@ Pipeline::Pipeline(VkDevice device, const create_info& info) : device{device}
     };
     pipeline_info.pDepthStencilState = &depth_stencil_state;
 
+    const auto color_blend_attachment_state = VkPipelineColorBlendAttachmentState 
+    {
+        .blendEnable    = VK_FALSE,
+        .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+    };
+
     const auto color_blend_state_info = VkPipelineColorBlendStateCreateInfo  
     {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
-        .logicOpEnable = VK_FALSE,
-        .logicOp = VK_LOGIC_OP_COPY,
+        .sType           = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+        .logicOpEnable   = VK_FALSE,
+        .logicOp         = VK_LOGIC_OP_COPY,
         .attachmentCount = 1,
-        .pAttachments = &color_blend_attachment_state,
+        .pAttachments    = &color_blend_attachment_state,
     };
     pipeline_info.pColorBlendState = &color_blend_state_info;
 
@@ -157,6 +165,20 @@ Pipeline::Pipeline(VkDevice device, const create_info& info) : device{device}
     {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
     };
+
+    if (info.binding_size != 0 && info.bindings)
+    {
+        auto descriptor_set_layout_info = VkDescriptorSetLayoutCreateInfo
+        {
+            .sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+            .bindingCount = info.binding_size,
+            .pBindings    = info.bindings,
+        };
+        CHECK_RESULT(vkCreateDescriptorSetLayout(device, &descriptor_set_layout_info, VK_NULL_HANDLE, descriptor_set_layouts));
+
+        pipeline_layout_info.setLayoutCount = info.binding_size;
+        pipeline_layout_info.pSetLayouts = descriptor_set_layouts;
+    }
 
     if (info.constant.empty())
     {

@@ -28,6 +28,8 @@ public:
     Queue() {}
 
     auto submit(const VkSubmitInfo& info, Family family) noexcept -> void;
+
+    auto transfer(VkCommandBuffer command) noexcept -> void;
 };
 
 NAMESPACE_END(rhi)

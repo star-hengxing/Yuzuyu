@@ -12,7 +12,7 @@ Command::Command(VkDevice device, u32 queue_family) : device{device}
             .flags            = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
             .queueFamilyIndex = queue_family,
         };
-        CHECK_RESULT(vkCreateCommandPool(device, &info, nullptr, &pool));
+        CHECK_RESULT(vkCreateCommandPool(device, &info, VK_NULL_HANDLE, &pool));
     }
 
     const auto info = VkCommandBufferAllocateInfo
@@ -127,11 +127,18 @@ auto Command::bind_index_buffer(const Buffer& buffer, bool is_u16) noexcept -> v
 
 auto Command::bind_pipeline(const Pipeline& pipeline) noexcept -> void
 {
-    vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.handle);
+    constexpr auto bind_point = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    vkCmdBindPipeline(command, bind_point, pipeline.handle);
     if (!pipeline.constant.empty())
     {
         const auto [size, ptr, type] = pipeline.constant;
         vkCmdPushConstants(command, pipeline.layout, type, 0, size, ptr);
+    }
+
+    if (pipeline.descriptor_set_size != 0 && pipeline.descriptor_sets)
+    {
+        vkCmdBindDescriptorSets(command, bind_point, pipeline.layout, 0,
+            pipeline.descriptor_set_size, pipeline.descriptor_sets, 0, VK_NULL_HANDLE);
     }
 }
 
@@ -259,8 +266,8 @@ auto Command::convert_buffer_to_image(const Buffer& src, const Texture& dst) noe
         VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
         VK_PIPELINE_STAGE_TRANSFER_BIT,
         0,
-        0, nullptr,
-        0, nullptr,
+        0, VK_NULL_HANDLE,
+        0, VK_NULL_HANDLE,
         1, &src_barrier);
 
     copy_buffer_to_texture(src, dst);
@@ -270,8 +277,8 @@ auto Command::convert_buffer_to_image(const Buffer& src, const Texture& dst) noe
         VK_PIPELINE_STAGE_TRANSFER_BIT,
         VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
         0,
-        0, nullptr,
-        0, nullptr,
+        0, VK_NULL_HANDLE,
+        0, VK_NULL_HANDLE,
         1, &dst_barrier);
 }
 

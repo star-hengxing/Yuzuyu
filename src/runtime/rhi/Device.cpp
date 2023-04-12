@@ -42,6 +42,11 @@ Device::~Device()
         vkb::destroy_debug_utils_messenger(instance, debug_messenger);
     }
 
+    if (surface)
+    {
+        vkDestroySurfaceKHR(instance, surface, VK_NULL_HANDLE);
+    }
+
     if (instance)
     {
         vkDestroyInstance(instance, VK_NULL_HANDLE);
