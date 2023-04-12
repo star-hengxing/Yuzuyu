@@ -12,6 +12,7 @@ rule("bin2lib.build")
         -- get cpp file
         local outputdir = path.join(target:autogendir(), "rules", "bin2lib")
         local cppfile = path.join(outputdir, path.filename(sourcefile) .. ".spv.cpp")
+        target:add("cleanfiles", cppfile)
 
         batchcmds:mkdir(outputdir)
         batchcmds:show_progress(opt.progress, "${color.build.object}codegen.spv2cpp %s", spvfile)
@@ -31,19 +32,3 @@ rule("bin2lib.build")
         batchcmds:set_depmtime(os.mtime(dependfile))
         batchcmds:set_depcache(dependfile)
     end)
-
-    on_clean(function (target)
-        for _, sourcebatch in pairs(target:sourcebatches()) do
-            if sourcebatch.rulename == "bin2lib.build" then
-                for _, sourcefile in pairs(sourcebatch.sourcefiles) do
-                    -- get cpp file
-                    local outputdir = path.join(target:autogendir(), "rules", "bin2lib")
-                    local cppfile = path.join(outputdir, path.filename(sourcefile) .. ".spv.cpp")
-                    local objectfile = target:objectfile(cppfile)
-                    os.tryrm(cppfile)
-                    os.tryrm(objectfile)
-                end
-            end
-        end
-    end)
-rule_end()

@@ -12,5 +12,6 @@ target("shader")
         configs.header = "precompile.hpp"
         configs.namespace = "shader"
         target:extraconf_set("rules", "bin2lib", configs)
+        target:extraconf_set("rules", "glsl2spv", {targetenv = "vulkan1.3"})
     end)
 target_end()
