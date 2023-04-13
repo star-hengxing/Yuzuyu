@@ -26,7 +26,7 @@ public:
     Queue queue;
 
 public:
-    ~Device();
+    auto clean() noexcept -> void;
 
     [[nodiscard]]
     auto initialize(const std::function<VkSurfaceKHR(VkInstance)>& callback) noexcept -> bool;

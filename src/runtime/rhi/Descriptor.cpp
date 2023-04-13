@@ -35,17 +35,23 @@ NAMESPACE_END()
 
 NAMESPACE_BEGIN(rhi)
 
-Descriptor::~Descriptor()
+auto Descriptor::clean() noexcept -> void
 {
+    if (sampler)
+    {
+        vkDestroySampler(device, sampler, VK_NULL_HANDLE);
+        sampler = VK_NULL_HANDLE;
+    }
+
     if (descriptor_pool)
     {
         vkDestroyDescriptorPool(device, descriptor_pool, VK_NULL_HANDLE);
+        descriptor_pool = VK_NULL_HANDLE;
     }
 }
 
 Descriptor::Descriptor(VkDevice device, VkDescriptorSetLayout* layouts)
-    :   device{device}, descriptor_pool{create_descriptor_pool(device)},
-        sampler{device}
+    :   device{device}, descriptor_pool{create_descriptor_pool(device)}
 {
     const auto info = VkDescriptorSetAllocateInfo
     {
@@ -56,13 +62,24 @@ Descriptor::Descriptor(VkDevice device, VkDescriptorSetLayout* layouts)
     };
 
     CHECK_RESULT(vkAllocateDescriptorSets(device, &info, descriptor_sets));
+
+    const auto sampler_info = VkSamplerCreateInfo
+    {
+        .sType        = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+        .magFilter    = VK_FILTER_LINEAR,
+        .minFilter    = VK_FILTER_LINEAR,
+        .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+        .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+        .addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+    };
+    CHECK_RESULT(vkCreateSampler(device, &sampler_info, VK_NULL_HANDLE, &sampler));
 }
 
 auto Descriptor::bind_texture(u32 binding, const Texture& texture) noexcept -> void
 {
     const auto image_info = VkDescriptorImageInfo
     {
-        .sampler     = sampler.handle,
+        .sampler     = sampler,
         .imageView   = texture.view,
         .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
     };

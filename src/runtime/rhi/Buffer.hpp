@@ -17,7 +17,7 @@ public:
 public:
     Buffer(Device* device, usize size, VkBufferUsageFlags flags, VmaMemoryUsage type);
 
-    ~Buffer();
+    auto clean() noexcept -> void;
 
     auto map() noexcept -> u8*;
     auto unmap() noexcept -> void;

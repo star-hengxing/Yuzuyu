@@ -30,7 +30,7 @@ public:
 
     Texture(const Swapchain& swapchain);
 
-    ~Texture();
+    auto clean() noexcept -> void;
 
     auto get_size() const noexcept -> Rect2D;
 };

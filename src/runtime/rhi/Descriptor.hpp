@@ -20,20 +20,17 @@ private:
 
     VkDescriptorPool descriptor_pool = VK_NULL_HANDLE;
 
-    Sampler sampler;
+    VkSampler sampler = VK_NULL_HANDLE;
 
 public:
-    VkDescriptorSet descriptor_sets[1];
+    VkDescriptorSet descriptor_sets[1]{};
 
 public:
     Descriptor() {}
 
     Descriptor(VkDevice device, VkDescriptorSetLayout* layouts);
 
-    ~Descriptor();
-
-    Descriptor(const Self&) = delete;
-    Self& operator = (const Self&) = delete;
+    auto clean() noexcept -> void;
 
     auto bind_texture(u32 binding, const Texture& texture) noexcept -> void;
 };

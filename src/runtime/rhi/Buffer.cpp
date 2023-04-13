@@ -3,11 +3,12 @@
 
 NAMESPACE_BEGIN(rhi)
 
-Buffer::~Buffer()
+auto Buffer::clean() noexcept -> void
 {
     if (handle && allocation)
     {
         vmaDestroyBuffer(device->allocator, handle, allocation);
+        handle = VK_NULL_HANDLE;
     }
 }
 

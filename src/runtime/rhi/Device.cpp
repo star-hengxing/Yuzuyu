@@ -17,39 +17,38 @@ auto Device::wait_idle() const noexcept -> void
     vkDeviceWaitIdle(handle);
 }
 
-Device::~Device()
+auto Device::clean() noexcept -> void
 {
     wait_idle();
-
-    for (auto&& fence : queue.fences)
-    {
-        fence.~Fence();
-        fence.handle = VK_NULL_HANDLE;
-    }
 
     if (allocator)
     {
         vmaDestroyAllocator(allocator);
+        allocator = VK_NULL_HANDLE;
     }
 
     if (handle)
     {
         vkDestroyDevice(handle, VK_NULL_HANDLE);
+        handle = VK_NULL_HANDLE;
     }
 
     if (debug_messenger)
     {
         vkb::destroy_debug_utils_messenger(instance, debug_messenger);
+        debug_messenger = VK_NULL_HANDLE;
     }
 
     if (surface)
     {
         vkDestroySurfaceKHR(instance, surface, VK_NULL_HANDLE);
+        surface = VK_NULL_HANDLE;
     }
 
     if (instance)
     {
         vkDestroyInstance(instance, VK_NULL_HANDLE);
+        instance = VK_NULL_HANDLE;
     }
 }
 
@@ -132,8 +131,6 @@ auto Device::initialize(const std::function<VkSurfaceKHR(VkInstance)>& callback)
     queue.indexes[static_cast<usize>(Queue::Family::transfer)] = vkb_device.get_queue_index(vkb::QueueType::transfer).value();
 
     queue.device = handle;
-    for (auto&& i : queue.fences)
-        i = Fence{handle};
 
 #ifdef USE_VOLK
     const auto vma_fn_info = VmaVulkanFunctions

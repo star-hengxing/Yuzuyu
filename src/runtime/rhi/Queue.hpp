@@ -22,14 +22,15 @@ public:
 
     VkQueue handles[MAX_QUEUE]{};
     u32 indexes[MAX_QUEUE]{};
-    Fence fences[MAX_QUEUE]{};
 
 public:
-    Queue() {}
+    auto submit_graphics(const VkSubmitInfo& info, Fence& fence) noexcept -> void;
 
-    auto submit(const VkSubmitInfo& info, Family family) noexcept -> void;
+    auto submit_transfer(VkCommandBuffer command) noexcept -> void;
 
-    auto transfer(VkCommandBuffer command) noexcept -> void;
+    auto get_queue(Family family) const noexcept -> VkQueue;
+
+    auto get_index(Family family) const noexcept -> u32;
 };
 
 NAMESPACE_END(rhi)

@@ -50,7 +50,7 @@ public:
 public:
     Pipeline() {}
 
-    ~Pipeline();
+    auto clean() noexcept -> void;
 
     Pipeline(VkDevice device, const create_info& info);
 

@@ -16,11 +16,12 @@ Sampler::Sampler(VkDevice device) : device{device}
     CHECK_RESULT(vkCreateSampler(device, &info, VK_NULL_HANDLE, &handle));
 }
 
-Sampler::~Sampler()
+auto Sampler::clean() noexcept -> void
 {
     if (handle)
     {
         vkDestroySampler(device, handle, VK_NULL_HANDLE);
+        handle = VK_NULL_HANDLE;
     }
 }
 

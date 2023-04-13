@@ -2,10 +2,19 @@
 
 NAMESPACE_BEGIN(rhi)
 
-auto Queue::submit(const VkSubmitInfo& info, Family family) noexcept -> void
+auto Queue::get_queue(Family family) const noexcept -> VkQueue
 {
-    auto&& fence = fences[static_cast<usize>(family)];
-    auto&& queue = handles[static_cast<usize>(family)];
+    return handles[static_cast<usize>(Family::graphics)];
+}
+
+auto Queue::get_index(Family family) const noexcept -> u32
+{
+    return indexes[static_cast<usize>(Family::graphics)];
+}
+
+auto Queue::submit_graphics(const VkSubmitInfo& info, Fence& fence) noexcept -> void
+{
+    auto queue = get_queue(Family::graphics);
 
     if (vkGetFenceStatus(device, fence.handle) == VK_SUCCESS)
     {
@@ -16,7 +25,7 @@ auto Queue::submit(const VkSubmitInfo& info, Family family) noexcept -> void
     CHECK_RESULT(vkQueueSubmit(queue, 1, &info, fence.handle));
 }
 
-auto Queue::transfer(VkCommandBuffer command) noexcept -> void
+auto Queue::submit_transfer(VkCommandBuffer command) noexcept -> void
 {
     const auto info = VkSubmitInfo
     {
@@ -25,7 +34,7 @@ auto Queue::transfer(VkCommandBuffer command) noexcept -> void
         .pCommandBuffers = &command,
     };
 
-    auto&& queue = handles[static_cast<usize>(Family::transfer)];
+    auto queue = get_queue(Family::transfer);
 
     CHECK_RESULT(vkQueueSubmit(queue, 1, &info, VK_NULL_HANDLE));
     CHECK_RESULT(vkQueueWaitIdle(queue));

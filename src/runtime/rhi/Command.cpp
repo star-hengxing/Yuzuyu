@@ -3,18 +3,8 @@
 
 NAMESPACE_BEGIN(rhi)
 
-Command::Command(VkDevice device, u32 queue_family) : device{device}
+Command::Command(VkDevice device, VkCommandPool pool) : device{device}, pool{pool}
 {
-    {
-        const auto info = VkCommandPoolCreateInfo
-        {
-            .sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-            .flags            = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-            .queueFamilyIndex = queue_family,
-        };
-        CHECK_RESULT(vkCreateCommandPool(device, &info, VK_NULL_HANDLE, &pool));
-    }
-
     const auto info = VkCommandBufferAllocateInfo
     {
         .sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -26,20 +16,16 @@ Command::Command(VkDevice device, u32 queue_family) : device{device}
     CHECK_RESULT(vkAllocateCommandBuffers(device, &info, &command));
 }
 
-Command::~Command()
+auto Command::clean() noexcept -> void
 {
     if (command)
     {
         vkFreeCommandBuffers(device, pool, 1, &command);
-    }
-
-    if (pool)
-    {
-        vkDestroyCommandPool(device, pool, VK_NULL_HANDLE);
+        command = VK_NULL_HANDLE;
     }
 }
 
-auto Command::begin(VkCommandBufferUsageFlags flags) noexcept -> void
+auto Command::begin(VkCommandBufferUsageFlags flags) noexcept -> reference
 {
     const auto info = VkCommandBufferBeginInfo
     {
@@ -47,14 +33,16 @@ auto Command::begin(VkCommandBufferUsageFlags flags) noexcept -> void
         .flags = flags,
     };
     CHECK_RESULT(vkBeginCommandBuffer(command, &info));
+    return *this;
 }
 
-auto Command::end() noexcept -> void
+auto Command::end() noexcept -> reference
 {
     CHECK_RESULT(vkEndCommandBuffer(command));
+    return *this;
 }
 
-auto Command::begin_renderpass(const Target& target) noexcept -> void
+auto Command::begin_renderpass(const Target& target) noexcept -> reference
 {
     const auto value = VkClearColorValue
     {
@@ -87,14 +75,16 @@ auto Command::begin_renderpass(const Target& target) noexcept -> void
     };
 
     vkCmdBeginRendering(command, &info);
+    return *this;
 }
 
-auto Command::end_renderpass() noexcept -> void
+auto Command::end_renderpass() noexcept -> reference
 {
     vkCmdEndRendering(command);
+    return *this;
 }
 
-auto Command::set_viewport(f32 width, f32 height, f32 x, f32 y) noexcept -> void
+auto Command::set_viewport(f32 width, f32 height, f32 x, f32 y) noexcept -> reference
 {
     const auto viewport = VkViewport
     {
@@ -106,26 +96,30 @@ auto Command::set_viewport(f32 width, f32 height, f32 x, f32 y) noexcept -> void
         .maxDepth = 1,
     };
     vkCmdSetViewport(command, 0, 1, &viewport);
+    return *this;
 }
 
-auto Command::set_scissor(u32 width, u32 height, i32 offset_x, i32 offset_y) noexcept -> void
+auto Command::set_scissor(u32 width, u32 height, i32 offset_x, i32 offset_y) noexcept -> reference
 {
     const auto rect = VkRect2D{VkOffset2D{offset_x, offset_y}, VkExtent2D{width, height}};
     vkCmdSetScissor(command, 0, 1, &rect);
+    return *this;
 }
 
-auto Command::bind_vertex_buffer(u32 binding, const Buffer& buffer) noexcept -> void
+auto Command::bind_vertex_buffer(u32 binding, const Buffer& buffer) noexcept -> reference
 {
     auto offset = usize{};
     vkCmdBindVertexBuffers(command, binding, 1, &buffer.handle, &offset);
+    return *this;
 }
 
-auto Command::bind_index_buffer(const Buffer& buffer, bool is_u16) noexcept -> void
+auto Command::bind_index_buffer(const Buffer& buffer, bool is_u16) noexcept -> reference
 {
     vkCmdBindIndexBuffer(command, buffer.handle, 0, is_u16 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
+    return *this;
 }
 
-auto Command::bind_pipeline(const Pipeline& pipeline) noexcept -> void
+auto Command::bind_pipeline(const Pipeline& pipeline) noexcept -> reference
 {
     constexpr auto bind_point = VK_PIPELINE_BIND_POINT_GRAPHICS;
     vkCmdBindPipeline(command, bind_point, pipeline.handle);
@@ -140,40 +134,47 @@ auto Command::bind_pipeline(const Pipeline& pipeline) noexcept -> void
         vkCmdBindDescriptorSets(command, bind_point, pipeline.layout, 0,
             pipeline.descriptor_set_size, pipeline.descriptor_sets, 0, VK_NULL_HANDLE);
     }
+    return *this;
 }
 
 auto Command::draw(u32 vertex_count, u32 instance_count, u32 first_vertex, u32 first_instance) noexcept
-    -> void
+    -> reference
 {
     vkCmdDraw(command, vertex_count, instance_count, first_vertex, first_instance);
+    return *this;
 }
 
-auto Command::draw_indirect(const Buffer& buffer, size_t offset, u32 draw_count, u32 stride) noexcept -> void
+auto Command::draw_indirect(const Buffer& buffer, size_t offset, u32 draw_count, u32 stride) noexcept -> reference
 {
     vkCmdDrawIndirect(command, buffer.handle, offset, draw_count, stride);
+    return *this;
 }
 
-auto Command::draw_indirect_count(const Buffer& buffer, size_t offset, const Buffer& count_buffer, size_t count_buffer_offset, u32 max_draw_count, u32 stride) noexcept -> void
+auto Command::draw_indirect_count(const Buffer& buffer, size_t offset, const Buffer& count_buffer, size_t count_buffer_offset, u32 max_draw_count, u32 stride) noexcept -> reference
 {
     vkCmdDrawIndirectCount(command, buffer.handle, offset, count_buffer.handle, count_buffer_offset, max_draw_count, stride);
+    return *this;
 }
 
-auto Command::draw_indexed(u32 index_count, u32 instance_count, u32 first_index, u32 vertex_offset, u32 first_instance) noexcept -> void
+auto Command::draw_indexed(u32 index_count, u32 instance_count, u32 first_index, u32 vertex_offset, u32 first_instance) noexcept -> reference
 {
     vkCmdDrawIndexed(command, index_count, instance_count, first_index, vertex_offset, first_instance);
+    return *this;
 }
 
-auto Command::draw_indexed_indirect(const Buffer& buffer, size_t offset, u32 draw_count, u32 stride) noexcept -> void
+auto Command::draw_indexed_indirect(const Buffer& buffer, size_t offset, u32 draw_count, u32 stride) noexcept -> reference
 {
     vkCmdDrawIndexedIndirect(command, buffer.handle, offset, draw_count, stride);
+    return *this;
 }
 
-auto Command::draw_indexed_indirect_count(const Buffer& buffer, size_t offset, const Buffer& count_buffer, size_t count_buffer_offset, u32 max_draw_count, u32 stride) noexcept -> void
+auto Command::draw_indexed_indirect_count(const Buffer& buffer, size_t offset, const Buffer& count_buffer, size_t count_buffer_offset, u32 max_draw_count, u32 stride) noexcept -> reference
 {
     vkCmdDrawIndexedIndirectCount(command, buffer.handle, offset, count_buffer.handle, count_buffer_offset, max_draw_count, stride);
+    return *this;
 }
 
-auto Command::copy_buffer_to_texture(const Buffer& src, const Texture& dst) noexcept -> void
+auto Command::copy_buffer_to_texture(const Buffer& src, const Texture& dst) noexcept -> reference
 {
     const auto subresource = VkImageSubresourceLayers
     {
@@ -192,9 +193,10 @@ auto Command::copy_buffer_to_texture(const Buffer& src, const Texture& dst) noex
     };
 
     vkCmdCopyBufferToImage(command, src.handle, dst.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy_info);
+    return *this;
 }
 
-auto Command::copy_texture_to_buffer(const Texture& src, const Buffer& dst) noexcept -> void
+auto Command::copy_texture_to_buffer(const Texture& src, const Buffer& dst) noexcept -> reference
 {
     const auto subresource = VkImageSubresourceLayers
     {
@@ -213,10 +215,11 @@ auto Command::copy_texture_to_buffer(const Texture& src, const Buffer& dst) noex
     };
 
     vkCmdCopyImageToBuffer(command, src.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst.handle, 1, &copy_info);
+    return *this;
 }
 
 auto Command::copy_buffer_to_buffer(const Buffer& src, const Buffer& dst,
-    usize size, usize src_offset, usize dst_offset) noexcept -> void
+    usize size, usize src_offset, usize dst_offset) noexcept -> reference
 {
     const auto copy_info = VkBufferCopy
     {
@@ -226,9 +229,10 @@ auto Command::copy_buffer_to_buffer(const Buffer& src, const Buffer& dst,
     };
 
     vkCmdCopyBuffer(command, src.handle, dst.handle, 1, &copy_info);
+    return *this;
 }
 
-auto Command::convert_buffer_to_image(const Buffer& src, const Texture& dst) noexcept -> void
+auto Command::convert_buffer_to_image(const Buffer& src, const Texture& dst) noexcept -> reference
 {
     const auto subresource = VkImageSubresourceRange
     {
@@ -280,9 +284,10 @@ auto Command::convert_buffer_to_image(const Buffer& src, const Texture& dst) noe
         0, VK_NULL_HANDLE,
         0, VK_NULL_HANDLE,
         1, &dst_barrier);
+    return *this;
 }
 
-auto Command::blit(const Texture& src, const Texture& dst) noexcept -> void
+auto Command::blit(const Texture& src, const Texture& dst) noexcept -> reference
 {
     const auto subresource = VkImageSubresourceLayers
     {
@@ -314,6 +319,7 @@ auto Command::blit(const Texture& src, const Texture& dst) noexcept -> void
         dst.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         1, &region,
         VK_FILTER_LINEAR);
+    return *this;
 }
 
 NAMESPACE_END(rhi)

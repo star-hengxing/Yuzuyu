@@ -38,7 +38,7 @@ private:
     auto destroy_image_view() noexcept -> void;
 
 public:
-    ~Swapchain();
+    auto clean() noexcept -> void;
 
     [[nodiscard]] 
     auto initialize(Device* device, Rect2D rect2d, bool vsync,

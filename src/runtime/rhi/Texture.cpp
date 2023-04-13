@@ -68,18 +68,20 @@ Texture::Texture(const Swapchain& swapchain)
     info.height = static_cast<u32>(swapchain.extent.height);
 }
 
-Texture::~Texture()
+auto Texture::clean() noexcept -> void
 {
     if (!is_swapchain_buffer)
     {
-        if (image)
-        {
-            vmaDestroyImage(device->allocator, image, allocation);
-        }
-
         if (view)
         {
             vkDestroyImageView(device->handle, view, VK_NULL_HANDLE);
+            view = VK_NULL_HANDLE;
+        }
+
+        if (image)
+        {
+            vmaDestroyImage(device->allocator, image, allocation);
+            image = VK_NULL_HANDLE;
         }
     }
 }

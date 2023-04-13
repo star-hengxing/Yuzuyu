@@ -19,24 +19,27 @@ NAMESPACE_END()
 
 NAMESPACE_BEGIN(rhi)
 
-Pipeline::~Pipeline()
+auto Pipeline::clean() noexcept -> void
 {
     for (auto&& i : descriptor_set_layouts)
     {
         if (i)
         {
             vkDestroyDescriptorSetLayout(device, i, VK_NULL_HANDLE);
+            i = VK_NULL_HANDLE;
         }
     }
 
     if (layout)
     {
         vkDestroyPipelineLayout(device, layout, VK_NULL_HANDLE);
+        layout = VK_NULL_HANDLE;
     }
 
     if (handle)
     {
         vkDestroyPipeline(device, handle, VK_NULL_HANDLE);
+        handle = VK_NULL_HANDLE;
     }
 }
 

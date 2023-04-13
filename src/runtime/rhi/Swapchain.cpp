@@ -13,19 +13,22 @@ auto Swapchain::destroy_image_view() noexcept -> void
     {
         vkDestroyImageView(device->handle, i, VK_NULL_HANDLE);
     }
+    image_views.clear();
 }
 
-Swapchain::~Swapchain()
+auto Swapchain::clean() noexcept -> void
 {
     destroy_image_view();
     if (swapchain)
     {
         vkDestroySwapchainKHR(device->handle, swapchain, VK_NULL_HANDLE);
+        swapchain = VK_NULL_HANDLE;
     }
 
     if (surface)
     {
         vkDestroySurfaceKHR(device->instance, surface, VK_NULL_HANDLE);
+        surface = VK_NULL_HANDLE;
     }
 }
 

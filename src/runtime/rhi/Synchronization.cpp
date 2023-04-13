@@ -12,11 +12,12 @@ Fence::Fence(VkDevice device) : device{device}
     CHECK_RESULT(vkCreateFence(device, &info, VK_NULL_HANDLE, &handle));
 }
 
-Fence::~Fence()
+auto Fence::clean() noexcept -> void
 {
     if (handle)
     {
         vkDestroyFence(device, handle, VK_NULL_HANDLE);
+        handle = VK_NULL_HANDLE;
     }
 }
 
@@ -39,11 +40,12 @@ Semaphore::Semaphore(VkDevice device) : device{device}
     CHECK_RESULT(vkCreateSemaphore(device, &info, VK_NULL_HANDLE, &handle));
 }
 
-Semaphore::~Semaphore()
+auto Semaphore::clean() noexcept -> void
 {
     if (handle)
     {
         vkDestroySemaphore(device, handle, VK_NULL_HANDLE);
+        handle = VK_NULL_HANDLE;
     }
 }
 
