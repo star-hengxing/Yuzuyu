@@ -1,5 +1,10 @@
 #pragma once
 
+#ifdef USE_VOLK
+#include <volk.h>
+#else
+#include <vulkan/vulkan.h>
+#endif
 #include <GLFW/glfw3.h>
 
 #include "window_system.hpp"
@@ -27,8 +32,7 @@ public:
 
     auto set_title(const char* title) noexcept -> void;
 
-    auto create_surface(VkInstance instance,
-        const VkAllocationCallbacks * allocator = nullptr) noexcept
+    auto create_surface(VkInstance instance) noexcept
         -> VkSurfaceKHR;
 
     auto get_window() const noexcept -> decltype(window)

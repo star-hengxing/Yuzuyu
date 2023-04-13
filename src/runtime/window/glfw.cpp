@@ -21,6 +21,11 @@ auto glfw_system::clean() noexcept -> void
     }
 }
 
+auto glfw_system::set_title(const char* title) noexcept -> void
+{
+    glfwSetWindowTitle(window, title);
+}
+
 auto glfw_system::initialize(const Config& config) noexcept -> const char*
 {
     if (glfwInit() == 0)
@@ -62,12 +67,11 @@ auto glfw_system::resized() noexcept -> Rect2D
     return {width, height};
 }
 
-auto glfw_system::create_surface(VkInstance instance,
-    const VkAllocationCallbacks* allocator) noexcept
+auto glfw_system::create_surface(VkInstance instance) noexcept
     -> VkSurfaceKHR
 {
     VkSurfaceKHR surface;
-    const auto result = glfwCreateWindowSurface(instance, window, allocator, &surface);
+    const auto result = glfwCreateWindowSurface(instance, window, VK_NULL_HANDLE, &surface);
     return (result == VK_SUCCESS) ? surface : VK_NULL_HANDLE;
 }
 
