@@ -50,6 +50,7 @@ public:
     auto copy_texture_to_buffer(const Texture& src, const Buffer& dst) noexcept -> reference;
     auto copy_buffer_to_buffer(const Buffer& src, const Buffer& dst,
         usize size, usize src_offset, usize dst_offset) noexcept -> reference;
+    auto copy_texture_to_texture(const Texture& src, const Texture& dst) noexcept -> reference;
 
     auto convert_buffer_to_image(const Buffer& src, const Texture& dst) noexcept -> reference;
 

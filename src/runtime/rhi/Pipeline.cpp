@@ -126,13 +126,13 @@ Pipeline::Pipeline(VkDevice device, const create_info& info) : device{device}
     };
     pipeline_info.pDepthStencilState = &depth_stencil_state;
 
-    const auto color_blend_attachment_state = VkPipelineColorBlendAttachmentState 
+    const auto color_blend_attachment_state = VkPipelineColorBlendAttachmentState
     {
         .blendEnable    = VK_FALSE,
         .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
     };
 
-    const auto color_blend_state_info = VkPipelineColorBlendStateCreateInfo  
+    const auto color_blend_state_info = VkPipelineColorBlendStateCreateInfo
     {
         .sType           = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
         .logicOpEnable   = VK_FALSE,

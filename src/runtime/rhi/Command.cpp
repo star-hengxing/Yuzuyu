@@ -232,6 +232,32 @@ auto Command::copy_buffer_to_buffer(const Buffer& src, const Buffer& dst,
     return *this;
 }
 
+auto Command::copy_texture_to_texture(const Texture& src, const Texture& dst) noexcept -> reference
+{
+    const auto subresource = VkImageSubresourceLayers
+    {
+        .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
+        .mipLevel       = 0,
+        .baseArrayLayer = 0,
+        .layerCount     = 1,
+    };
+
+    const auto copy_info = VkImageCopy
+    {
+        .srcSubresource = subresource,
+        .srcOffset      = {0, 0, 1},
+        .dstSubresource = subresource,
+        .dstOffset      = {0, 0, 1},
+        .extent         = {src.info.width, src.info.height, 1},
+    };
+
+    vkCmdCopyImage(command,
+        src.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        dst.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        1, &copy_info);
+    return *this;
+}
+
 auto Command::convert_buffer_to_image(const Buffer& src, const Texture& dst) noexcept -> reference
 {
     const auto subresource = VkImageSubresourceRange
