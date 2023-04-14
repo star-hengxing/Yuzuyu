@@ -20,15 +20,19 @@ elseif is_mode("release") then
     set_policy("build.optimization.lto", true)
 end
 
+local package_config = {header_only = false}
+
 if is_mode("debug", "releasedbg") then
     set_symbols("debug")
     set_policy("build.warning", true)
     -- use dynamic libraries acceleration on linking
     add_defines("LIBRARY_DLL")
-    add_requireconfs("*", {configs = {shared = true, debug = true}})
+
+    package_config.shared = true
+    package_config.debug = true
 end
 
-add_requireconfs("*", {configs = {header_only = false}})
+add_requireconfs("*", {configs = package_config})
 
 if is_plat("windows") then
     if is_mode("debug") then
