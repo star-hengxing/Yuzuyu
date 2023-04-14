@@ -1,10 +1,6 @@
 #include <fast_io.h>
 
 #include <VkBootstrap.h>
-#ifdef USE_VOLK
-#define VMA_STATIC_VULKAN_FUNCTIONS 0
-#define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
-#endif
 #include <vk_mem_alloc.h>
 
 #include <config.hpp>
@@ -38,12 +34,12 @@ auto Device::clean() noexcept -> void
         vkb::destroy_debug_utils_messenger(instance, debug_messenger);
         debug_messenger = VK_NULL_HANDLE;
     }
-
-    if (surface)
-    {
-        vkDestroySurfaceKHR(instance, surface, VK_NULL_HANDLE);
-        surface = VK_NULL_HANDLE;
-    }
+    // window system owner
+    // if (surface)
+    // {
+    //     vkDestroySurfaceKHR(instance, surface, VK_NULL_HANDLE);
+    //     surface = VK_NULL_HANDLE;
+    // }
 
     if (instance)
     {
@@ -137,23 +133,23 @@ auto Device::initialize(const std::function<VkSurfaceKHR(VkInstance)>& callback)
     {
         .vkGetInstanceProcAddr               = vkGetInstanceProcAddr,
         .vkGetDeviceProcAddr                 = vkGetDeviceProcAddr,
-        // .vkGetPhysicalDeviceProperties       = vkGetPhysicalDeviceProperties,
-        // .vkGetPhysicalDeviceMemoryProperties = vkGetPhysicalDeviceMemoryProperties,
-        // .vkAllocateMemory                    = vkAllocateMemory,
-        // .vkFreeMemory                        = vkFreeMemory,
-        // .vkMapMemory                         = vkMapMemory,
-        // .vkUnmapMemory                       = vkUnmapMemory,
-        // .vkFlushMappedMemoryRanges           = vkFlushMappedMemoryRanges,
-        // .vkInvalidateMappedMemoryRanges      = vkInvalidateMappedMemoryRanges,
-        // .vkBindBufferMemory                  = vkBindBufferMemory,
-        // .vkBindImageMemory                   = vkBindImageMemory,
-        // .vkGetBufferMemoryRequirements       = vkGetBufferMemoryRequirements,
-        // .vkGetImageMemoryRequirements        = vkGetImageMemoryRequirements,
-        // .vkCreateBuffer                      = vkCreateBuffer,
-        // .vkDestroyBuffer                     = vkDestroyBuffer,
-        // .vkCreateImage                       = vkCreateImage,
-        // .vkDestroyImage                      = vkDestroyImage,
-        // .vkCmdCopyBuffer                     = vkCmdCopyBuffer,
+        .vkGetPhysicalDeviceProperties       = vkGetPhysicalDeviceProperties,
+        .vkGetPhysicalDeviceMemoryProperties = vkGetPhysicalDeviceMemoryProperties,
+        .vkAllocateMemory                    = vkAllocateMemory,
+        .vkFreeMemory                        = vkFreeMemory,
+        .vkMapMemory                         = vkMapMemory,
+        .vkUnmapMemory                       = vkUnmapMemory,
+        .vkFlushMappedMemoryRanges           = vkFlushMappedMemoryRanges,
+        .vkInvalidateMappedMemoryRanges      = vkInvalidateMappedMemoryRanges,
+        .vkBindBufferMemory                  = vkBindBufferMemory,
+        .vkBindImageMemory                   = vkBindImageMemory,
+        .vkGetBufferMemoryRequirements       = vkGetBufferMemoryRequirements,
+        .vkGetImageMemoryRequirements        = vkGetImageMemoryRequirements,
+        .vkCreateBuffer                      = vkCreateBuffer,
+        .vkDestroyBuffer                     = vkDestroyBuffer,
+        .vkCreateImage                       = vkCreateImage,
+        .vkDestroyImage                      = vkDestroyImage,
+        .vkCmdCopyBuffer                     = vkCmdCopyBuffer,
     };
 #endif
 

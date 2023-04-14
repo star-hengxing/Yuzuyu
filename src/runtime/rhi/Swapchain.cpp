@@ -114,8 +114,10 @@ auto Swapchain::present(VkSemaphore semaphore) noexcept -> void
     {
         frame_index = 0;
     }
-
-    CHECK_RESULT(result);
+    else
+    {
+        CHECK_RESULT(result);
+    }
 }
 
 auto Swapchain::acquire_next(VkSemaphore semaphore, VkFence fence) noexcept -> void
