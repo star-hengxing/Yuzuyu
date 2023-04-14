@@ -32,6 +32,7 @@ public:
         u32 binding_size = 0;
         VkDescriptorSetLayoutBinding* bindings;
         push_constants constant;
+        bool alpha = false;
     };
 
 private:

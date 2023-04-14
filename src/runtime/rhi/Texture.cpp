@@ -59,9 +59,9 @@ Texture::Texture(Device* device, const create_info& info) : device{device}, info
     CHECK_RESULT(vkCreateImageView(device->handle, &view_info, nullptr, &view));
 }
 
-Texture::Texture(const Swapchain& swapchain)
-    :   image{swapchain.images[swapchain.frame_index]},
-        view{swapchain.image_views[swapchain.frame_index]},
+Texture::Texture(const Swapchain& swapchain, usize index)
+    :   image{swapchain.images[index]},
+        view{swapchain.image_views[index]},
         is_swapchain_buffer{true}
 {
     info.width  = static_cast<u32>(swapchain.extent.width);

@@ -28,7 +28,7 @@ public:
 public:
     Texture(Device* device, const create_info& info);
 
-    Texture(const Swapchain& swapchain);
+    Texture(const Swapchain& swapchain, usize index);
 
     auto clean() noexcept -> void;
 
