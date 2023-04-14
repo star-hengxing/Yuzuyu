@@ -3,7 +3,7 @@
 
 NAMESPACE_BEGIN(rhi)
 
-Texture::Texture(Device* device, const create_info& info) : info{info}
+Texture::Texture(Device* device, const create_info& info) : device{device}, info{info}
 {
     const auto image_info = VkImageCreateInfo
     {
