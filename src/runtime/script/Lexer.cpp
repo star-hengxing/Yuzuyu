@@ -50,24 +50,24 @@ NAMESPACE_END(script::detail)
 
 NAMESPACE_BEGIN()
 
-constexpr auto is_letter(char c) noexcept -> bool
+auto is_letter(char c) noexcept -> bool
 {
     return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
 }
 
-constexpr auto is_number(char c) noexcept -> bool
+auto is_number(char c) noexcept -> bool
 {
     return c >= '0' && c <= '9';
 }
 
-constexpr auto is_alpha(char c) noexcept -> bool
+auto is_alpha(char c) noexcept -> bool
 {
     return is_letter(c) || is_number(c);
 }
 
 using namespace ::script::detail;
 
-constexpr auto skip_ws(Context* context) noexcept -> void
+auto skip_ws(Context* context) noexcept -> void
 {
     char c = context->get();
     auto ptr = context->current;
@@ -81,7 +81,7 @@ constexpr auto skip_ws(Context* context) noexcept -> void
     context->set(ptr);
 }
 
-constexpr auto skip_line(Context* context) noexcept -> usize
+auto skip_line(Context* context) noexcept -> usize
 {
     auto count = usize{0};
     char c = context->get();
@@ -100,7 +100,7 @@ constexpr auto skip_line(Context* context) noexcept -> usize
     return count;
 }
 
-constexpr auto skip_comment(Context* context) noexcept -> void
+auto skip_comment(Context* context) noexcept -> void
 {
     char c = context->get();
     auto ptr = context->current;
