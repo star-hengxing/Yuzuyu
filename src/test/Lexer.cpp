@@ -1,8 +1,8 @@
 #include <boost/ut.hpp>
 #include <fast_io.h>
 
-#include <runtime/base/range.hpp>
-#include <runtime/script/Lexer.hpp>
+#include <core/base/range.hpp>
+#include <function/script/Lexer.hpp>
 
 using namespace boost::ut;
 using namespace script::detail;

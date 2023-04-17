@@ -6,6 +6,8 @@ set_xmakever("2.7.5")
 set_warnings("all")
 set_languages("c++20")
 
+set_allowedplats("windows")
+
 add_rules("mode.debug", "mode.releasedbg", "mode.release")
 
 if is_mode("debug") then

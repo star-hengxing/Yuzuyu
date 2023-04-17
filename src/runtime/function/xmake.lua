@@ -1,9 +1,11 @@
 local components =
 {
-    "core",
-    "platform",
-    "function",
-    "resource",
+    "input",
+    "Multimedia",
+    "rhi",
+    "script",
+    "shader",
+    "window",
 }
 
 for _, component in ipairs(components) do
@@ -14,10 +16,9 @@ end
 
 add_includedirs(".")
 
-target("runtime")
+target("function")
     set_kind("phony")
     add_headerfiles("(**.hpp)")
-    add_includedirs(path.join("$(projectdir)", "src", "runtime"), {public = true})
 
     for _, component in ipairs(components) do
         add_deps(component)

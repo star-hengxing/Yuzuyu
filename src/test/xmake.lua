@@ -1,10 +1,12 @@
 add_rules("module.test")
 
-target("io_test")
-    set_kind("binary")
-    add_files("io.cpp")
+add_includedirs(path.join("$(projectdir)", "src", "runtime"))
 
-    add_deps("io")
+target("test.resource")
+    set_kind("binary")
+    add_files("resource.cpp")
+
+    add_deps("resource")
 target_end()
 
 for _, name in ipairs({"Lexer", "Parser"}) do

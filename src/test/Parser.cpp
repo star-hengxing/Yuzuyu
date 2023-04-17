@@ -1,7 +1,7 @@
 #include <boost/ut.hpp>
 
-#include <runtime/base/range.hpp>
-#include <runtime/script/Parser.hpp>
+#include <core/base/range.hpp>
+#include <function/script/Parser.hpp>
 
 using namespace boost::ut;
 using namespace script::detail;

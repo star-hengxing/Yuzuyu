@@ -6,6 +6,7 @@ vsxmake*/
 
 # build
 build/
+precompile.hpp
 
 # resource
 assets/

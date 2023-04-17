@@ -1,0 +1,5 @@
+target("rhi.cpu")
+    set_kind("$(kind)")
+    add_rules("module.component")
+    add_files("**.cpp")
+    add_headerfiles("(**.hpp)")
