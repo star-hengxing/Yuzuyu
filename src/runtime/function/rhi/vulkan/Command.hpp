@@ -7,6 +7,8 @@
 
 NAMESPACE_BEGIN(rhi::vulkan)
 
+auto create_command_pool(VkDevice device, u32 queue_index) noexcept -> VkCommandPool;
+
 struct Command
 {
 private:

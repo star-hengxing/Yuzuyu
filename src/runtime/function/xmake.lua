@@ -6,6 +6,7 @@ local components =
     "script",
     "shader",
     "window",
+    "render",
 }
 
 for _, component in ipairs(components) do
