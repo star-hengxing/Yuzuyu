@@ -13,6 +13,7 @@ import <map>;
 #include <core/base/unsafe/buffer_view.hpp>
 #include <function/window/sdl.hpp>
 #include <function/shader/precompile.hpp>
+#include <resource/Image.hpp>
 
 #include <function/rhi/vulkan/Device.hpp>
 #include <function/rhi/vulkan/Swapchain.hpp>
@@ -38,6 +39,8 @@ struct Frame
 struct render_payload
 {
     RGBA<f32> color = rgb_to_float<f32>(color_space::black);
+    u32 is_font = 0;
+    u32 is_texture = 0;
 };
 
 struct Renderer
@@ -75,6 +78,8 @@ public:
     auto draw_frame() noexcept -> void;
 
     auto add_texture(const std::string_view filename) noexcept -> void;
+
+    auto add_font(const std::string_view name, const Image& image) noexcept -> void;
 
     auto bind_texture(const std::string_view filename, u32 binding) noexcept -> void;
 

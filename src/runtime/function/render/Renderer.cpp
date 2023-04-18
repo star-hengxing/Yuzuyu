@@ -121,6 +121,7 @@ auto Renderer::record(const unsafe::buffer_view<draw_config> configs) noexcept -
 
         for (auto&& cfg : configs)
         {
+            payload = {};
             if (cfg.texture.empty())
             {
                 payload.color = rgb_to_float<f32>(cfg.color);
@@ -128,6 +129,12 @@ auto Renderer::record(const unsafe::buffer_view<draw_config> configs) noexcept -
             else
             {
                 this->bind_texture(cfg.texture, 0);
+                payload.is_texture = 1;
+                if (cfg.texture.starts_with("font"))
+                {
+                    payload.color = rgb_to_float<f32>(cfg.color);
+                    payload.is_font = 1;
+                }
             }
             payload.color.a = cfg.opacity;
 
@@ -201,7 +208,7 @@ auto Renderer::add_texture(const std::string_view filename) noexcept -> void
 
     auto view = image->get_view();
     auto size = view.size() * 4;
-    auto tmp_buffer = vk::Buffer{&device, size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU};
+    auto tmp_buffer = vk::Buffer{&device, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU};
     tmp_buffer.cpu_to_gpu(&view.ptr->r, size, 0);
 
     auto info = vk::Texture::create_info
@@ -222,6 +229,33 @@ auto Renderer::add_texture(const std::string_view filename) noexcept -> void
     tmp_buffer.clean();
     transfer_cmd.clean();
     perrln("Add texture: ", filename);
+}
+
+auto Renderer::add_font(const std::string_view name, const Image& image) noexcept -> void
+{
+    auto view = image.get_view();
+    auto size = view.size() * 4;
+    auto tmp_buffer = vk::Buffer{&device, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU};
+    tmp_buffer.cpu_to_gpu(&view.ptr->r, size, 0);
+
+    auto info = vk::Texture::create_info
+    {
+        .width = view.width,
+        .height = view.height,
+        .flags = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+    };
+    auto texture = vk::Texture{&device, info};
+
+    auto transfer_cmd = vk::Command{device.handle, command_pools[1]};
+    transfer_cmd.begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+    transfer_cmd.copy_buffer_to_texture(tmp_buffer, texture);
+    transfer_cmd.end();
+    device.queue.submit_transfer(transfer_cmd.command);
+
+    textures.emplace(name, texture);
+    tmp_buffer.clean();
+    transfer_cmd.clean();
+    perrln("Add font texture: ", name);
 }
 
 auto Renderer::bind_texture(const std::string_view filename, u32 binding) noexcept -> void
