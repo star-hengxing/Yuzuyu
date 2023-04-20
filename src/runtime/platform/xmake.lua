@@ -5,6 +5,7 @@ target("platform")
     add_headerfiles("(**.hpp)")
 
     if is_plat("windows") then
+        add_defines("WIN32_LEAN_AND_MEAN")
         add_files("audio/xaudio2.cpp")
         add_syslinks("ole32")
     end

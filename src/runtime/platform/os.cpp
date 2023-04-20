@@ -1,7 +1,7 @@
 #ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #else
+#define _POSIX_C_SOURCE 199309L
 #include <ctime>
 #endif
 
@@ -19,10 +19,14 @@ auto time() noexcept -> fast_io::unix_timestamp
 auto sleep(usize milliseconds) noexcept -> void
 {
 #ifdef _WIN32
-    Sleep(milliseconds);
+    ::Sleep(milliseconds);
 #else
-    static_assert(false, "unimplemented!");
-    // TODO
+    const timespec rtqp
+    {
+        .tv_sec  = static_cast<std::time_t>(milliseconds / 1000),
+        .tv_nsec = static_cast<long>((milliseconds % 1000) * 1000000),
+    };
+    ::nanosleep(&rtqp, nullptr);
 #endif
 }
 

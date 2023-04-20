@@ -2,6 +2,7 @@
 
 #include <core/base/debug.hpp>
 #include <core/base/range.hpp>
+#include <platform/os.hpp>
 #include "Xaudio2.hpp"
 
 NAMESPACE_BEGIN(os::audio::detail)
@@ -172,7 +173,7 @@ auto Xaudio2::worker() noexcept -> void
 
         } while (false);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
+        os::sleep(SLEEP_TIME);
     }
 }
 
