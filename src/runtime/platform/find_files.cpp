@@ -1,10 +1,8 @@
-#include <ghc/filesystem.hpp>
+#include <filesystem>
 
 #include "find_files.hpp"
 
 NAMESPACE_BEGIN(os)
-
-namespace fs = ghc::filesystem;
 
 auto find_files(const std::string_view str) -> std::vector<std::string>
 {
@@ -30,7 +28,7 @@ auto find_files(const std::string_view str) -> std::vector<std::string>
 
     if (is_recursive)
     {
-        for (const auto& entry : fs::recursive_directory_iterator{dir})
+        for (const auto& entry : std::filesystem::recursive_directory_iterator{dir})
         {
             if (entry.is_regular_file() && entry.path().extension() == extension)
             {
@@ -40,7 +38,7 @@ auto find_files(const std::string_view str) -> std::vector<std::string>
     }
     else
     {
-        for (const auto& entry : fs::directory_iterator{dir})
+        for (const auto& entry : std::filesystem::directory_iterator{dir})
         {
             if (entry.is_regular_file() && entry.path().extension() == extension)
             {

@@ -70,7 +70,6 @@ xmake run -g test
 - [stb](https://github.com/nothings/stb)
 - [tl_expected](https://github.com/TartanLlama/expected)
 - [freetype](https://github.com/freetype/freetype)
-- [ghc_filesystem](https://github.com/gulrak/filesystem)
 - [ffmpeg](https://github.com/FFmpeg/FFmpeg)
 - [toml++](https://github.com/marzer/tomlplusplus)
 - [boost_ut](https://github.com/boost-ext/ut)
