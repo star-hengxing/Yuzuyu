@@ -1,7 +1,9 @@
-// extern "C"
-// {
-// #include <libavutil/time.h>
-// }
+#ifdef USE_MODULES
+import <string>;
+#else
+#include <string>
+#endif
+
 #include <fast_io.h>
 
 #include <core/base/debug.hpp>
