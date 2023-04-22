@@ -3,8 +3,7 @@
 #include <core/base/range.hpp>
 #include "io.hpp"
 
-NAMESPACE_BEGIN(io)
-NAMESPACE_BEGIN(file)
+NAMESPACE_BEGIN(io::file)
 
 // TODO: async read
 auto read_to_buffer(const std::string_view filename, bool has_eof)
@@ -26,5 +25,4 @@ auto read_to_buffer(const std::string_view filename, bool has_eof)
     return {std::move(buffer), size};
 }
 
-NAMESPACE_END(file)
-NAMESPACE_END(io)
+NAMESPACE_END(io::file)

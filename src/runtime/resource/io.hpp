@@ -9,8 +9,7 @@ import <string_view>;
 #include <core/base/Owned.hpp>
 #include <core/base/base.hpp>
 
-NAMESPACE_BEGIN(io)
-NAMESPACE_BEGIN(file)
+NAMESPACE_BEGIN(io::file)
 
 struct fixed_buffer
 {
@@ -23,5 +22,4 @@ struct fixed_buffer
 auto read_to_buffer(const std::string_view filename, bool has_eof = false)
     -> fixed_buffer;
 
-NAMESPACE_END(file)
-NAMESPACE_END(io)
+NAMESPACE_END(io::file)

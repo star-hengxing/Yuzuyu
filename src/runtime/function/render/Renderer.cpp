@@ -199,36 +199,37 @@ auto Renderer::add_texture(const std::string_view filename) noexcept -> void
     if (textures.contains(filename))
         return;
 
-    auto image = io::file::read_to_image(filename);
-    if (!image)
+    try
     {
-        perrln(image.error());
-        return;
+        auto image = io::file::read_to_image(filename.data());
+        auto view = image.get_view();
+        auto size = view.size() * 4;
+        auto tmp_buffer = vk::Buffer{&device, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU};
+        tmp_buffer.cpu_to_gpu(&view.ptr->r, size, 0);
+
+        auto info = vk::Texture::create_info
+        {
+            .width = view.width,
+            .height = view.height,
+            .flags = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+        };
+        auto texture = vk::Texture{&device, info};
+
+        auto transfer_cmd = vk::Command{device.handle, command_pools[1]};
+        transfer_cmd.begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+        transfer_cmd.copy_buffer_to_texture(tmp_buffer, texture);
+        transfer_cmd.end();
+        device.queue.submit_transfer(transfer_cmd.command);
+
+        textures.emplace(filename, texture);
+        tmp_buffer.clean();
+        transfer_cmd.clean();
+        perrln("Add texture: ", filename);
     }
-
-    auto view = image->get_view();
-    auto size = view.size() * 4;
-    auto tmp_buffer = vk::Buffer{&device, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU};
-    tmp_buffer.cpu_to_gpu(&view.ptr->r, size, 0);
-
-    auto info = vk::Texture::create_info
+    catch (const std::string_view msg)
     {
-        .width = view.width,
-        .height = view.height,
-        .flags = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
-    };
-    auto texture = vk::Texture{&device, info};
-
-    auto transfer_cmd = vk::Command{device.handle, command_pools[1]};
-    transfer_cmd.begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
-    transfer_cmd.copy_buffer_to_texture(tmp_buffer, texture);
-    transfer_cmd.end();
-    device.queue.submit_transfer(transfer_cmd.command);
-
-    textures.emplace(filename, texture);
-    tmp_buffer.clean();
-    transfer_cmd.clean();
-    perrln("Add texture: ", filename);
+        perrln(msg);
+    }
 }
 
 auto Renderer::add_font(const std::string_view name, const Image& image) noexcept -> void

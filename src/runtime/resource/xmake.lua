@@ -4,5 +4,5 @@ target("resource")
     add_files("**.cpp")
     add_headerfiles("(**.hpp)")
 
-    add_packages("fast_io", "stb")
-    add_packages("expected", "freetype", {public = true})
+    add_packages("fast_io", "avir", "libpng", "libjpeg-turbo")
+    add_packages("freetype", {public = true})

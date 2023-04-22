@@ -3,7 +3,6 @@
 
 #include <core/base/range.hpp>
 #include <resource/Image.hpp>
-#include <resource/io.hpp>
 
 using namespace boost::ut;
 
@@ -18,28 +17,65 @@ auto main() -> int
         color_space::yellow
     };
 
-    constexpr auto filename = std::string_view{"build/test.png"};
-    io::file::write_image(filename, (const u8*)colors, 2, 2);
-
-    const auto image = io::file::read_to_image(filename.data());
-    "image_write"_test = [&]
+    "png write and read"_test = [&]
     {
-        if (!image.has_value())
+        constexpr auto filename = std::string_view{"build/test.png"};
+        expect(io::file::write_image(filename, (const u8*)colors, 2, 2));
+
+        try
         {
-            expect(image.has_value());
-            perrln(image.error());
+            auto image = io::file::read_to_image(filename);
+            auto view = image.get_view();
+            expect(view.ptr);
+            expect(view.width != 0);
+            expect(view.height != 0);
+
+            expect(view.width == 2);
+            expect(view.height == 2);
+            for (auto i : range(size))
+            {
+                expect(colors[i] == view.ptr[i]);
+            }
+        }
+        catch (const std::string_view msg)
+        {
+            perrln(msg);
         }
     };
 
-    const auto view = image->get_view();
-    "image_read"_test = [&]
+    "jpg write and read"_test = [&]
     {
-        expect(view.ptr);
-        expect(view.width == 2);
-        expect(view.height == 2);
-        for (auto i : range(size))
+        constexpr auto filename = std::string_view{"build/test.jpg"};
+        expect(io::file::write_image(filename, (const u8*)colors, 2, 2));
+
+        try
         {
-            expect(colors[i] == view.ptr[i]);
+            auto image = io::file::read_to_image(filename);
+            auto view = image.get_view();
+            expect(view.ptr);
+            expect(view.width != 0);
+            expect(view.height != 0);
+
+            expect(view.width == 2);
+            expect(view.height == 2);
+        }
+        catch (const std::string_view msg)
+        {
+            perrln(msg);
+        }
+    };
+
+    "image resize"_test = [&]
+    {
+        constexpr auto filename = std::string_view{"build/test.jpg"};
+        try
+        {
+            auto image = io::file::read_to_image(filename);
+            image.resize(700, 700);
+        }
+        catch (const std::string_view msg)
+        {
+            perrln(msg);
         }
     };
 }

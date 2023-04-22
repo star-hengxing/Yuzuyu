@@ -6,12 +6,11 @@ import <string_view>;
 #include <string_view>
 #endif
 
-#include <tl/expected.hpp>
 #include <fast_io.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#include <resource/Image.hpp>
+#include "Image.hpp"
 
 struct font_config
 {
@@ -59,11 +58,9 @@ public:
     auto render_line(const font_config& config) -> Image;
 };
 
-NAMESPACE_BEGIN(io)
-NAMESPACE_BEGIN(file)
+NAMESPACE_BEGIN(io::file)
 
 // if error, return error message
-auto read_to_font(const std::string_view filename) -> tl::expected<font_mananger, std::string>;
+auto read_to_font(const std::string_view filename) -> font_mananger;
 
-NAMESPACE_END(file)
-NAMESPACE_END(io)
+NAMESPACE_END(io::file)

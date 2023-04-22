@@ -15,13 +15,14 @@ add_requires("libsdl")
 add_requires("spdlog")
 -- i/o
 add_requires("fast_io")
--- image i/o
-add_requires("stb")
--- erro handle
-add_requires("tl_expected master", {alias = "expected"})
+-- image codec
+add_requires("libpng")
+add_requires("libjpeg-turbo 2.1.5", {configs = {debug = false}}) -- compilation failure on windows
+-- image resize
+add_requires("avir")
 -- text rendering
 add_requires("freetype")
--- video/audio
+-- video/audio codec
 add_requires("ffmpeg")
 
 -- test

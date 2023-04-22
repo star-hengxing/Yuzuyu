@@ -27,3 +27,28 @@
 #else
 #define LIBRARY_RELEASE
 #endif
+
+// https://stackoverflow.com/questions/32432450/what-is-standard-defer-finalizer-implementation-in-c
+struct defer_dummy{};
+
+template <typename F>
+struct deferrer
+{
+    F f;
+    ~deferrer()
+    {
+        f();
+    }
+};
+template <typename F>
+auto operator * (defer_dummy, F f) noexcept -> deferrer<F>
+{
+    return {f};
+}
+
+#define DEFER_CONCAT(LINE) scope_guard_##LINE
+/**
+* golang-style operation, RAII wrapper for third-party c library
+* example: defer { free(ptr); };
+*/
+#define defer auto DEFER_CONCAT(__LINE__) = ::defer_dummy{} * [=]()

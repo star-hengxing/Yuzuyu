@@ -85,17 +85,18 @@ auto font_mananger::render_line(const font_config& config) -> Image
     return image;
 }
 
-NAMESPACE_BEGIN(io)
-NAMESPACE_BEGIN(file)
+NAMESPACE_BEGIN(io::file)
 
-auto read_to_font(const std::string_view filename) -> tl::expected<font_mananger, std::string>
+auto read_to_font(const std::string_view filename) -> font_mananger
 {
+    using namespace std::string_view_literals;
+
     FT_Error error;
     FT_Library ft;
     error = FT_Init_FreeType(&ft);
     if (error)
     {
-        return tl::make_unexpected("FT_Init_FreeType failed\n");
+        throw "FT_Init_FreeType failed"sv;
     }
 
     FT_Face face;
@@ -104,11 +105,10 @@ auto read_to_font(const std::string_view filename) -> tl::expected<font_mananger
     if (error)
     {
         FT_Done_FreeType(ft);
-        return tl::make_unexpected("Failed to load font\n");
+        throw "Failed to load font"sv;
     }
 
-    return {{ft, face, std::move(file)}};
+    return {ft, face, std::move(file)};
 }
 
-NAMESPACE_END(file)
-NAMESPACE_END(io)
+NAMESPACE_END(io::file)
