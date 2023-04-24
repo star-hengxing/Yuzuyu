@@ -14,9 +14,19 @@
 #define ALWAYS_INLINE [[gnu::always_inline]]
 #endif
 
-#if defined(_WIN32) && defined(LIBRARY_DLL)
-#define LIBRARY_EXPORT __declspec(dllexport)
-#define LIBRARY_IMPORT __declspec(dllimport)
+#if defined(LIBRARY_DLL)
+    #if defined(_WIN32) || defined(__CYGWIN__)
+        #ifdef __GNUC__
+            #define LIBRARY_EXPORT __attribute__(dllexport)
+            #define LIBRARY_IMPORT __attribute__(dllimport)
+        #else
+            #define LIBRARY_EXPORT __declspec(dllexport)
+            #define LIBRARY_IMPORT __declspec(dllimport)
+        #endif
+    #elif defined(__GNUC__) || defined(__clang__)
+        #define LIBRARY_EXPORT __attribute__((visibility ("default")))
+        #define LIBRARY_IMPORT __attribute__((visibility ("default")))
+    #endif
 #else
 #define LIBRARY_EXPORT
 #define LIBRARY_IMPORT
@@ -40,6 +50,7 @@ struct deferrer
         f();
     }
 };
+
 template <typename F>
 auto operator * (defer_dummy, F f) noexcept -> deferrer<F>
 {
