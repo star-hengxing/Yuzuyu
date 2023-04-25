@@ -35,6 +35,8 @@ if is_mode("debug", "releasedbg") then
 end
 
 add_requireconfs("*", {configs = package_config})
+-- fix package will add '-isystem /usr/include'
+set_policy("package.include_external_headers", false)
 
 if is_plat("windows") then
     if is_mode("debug") then

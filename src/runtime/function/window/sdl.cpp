@@ -1,3 +1,9 @@
+#ifdef USE_MODULES
+import <cstring>;
+#else
+#include <cstring>
+#endif
+
 #include <fast_io.h>
 
 #include <core/base/range.hpp>
@@ -97,7 +103,7 @@ auto sdl_system::present(void* framebuffer) noexcept -> void
     }
 #else
     // TODO: use simd
-    memcpy(surface->pixels, framebuffer, size);
+    std::memcpy(surface->pixels, framebuffer, size);
 #endif
     const auto result = SDL_UpdateWindowSurface(window);
 

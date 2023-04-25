@@ -17,7 +17,7 @@ add_requires("spdlog")
 add_requires("fast_io")
 -- image codec
 add_requires("libpng")
-add_requires("libjpeg-turbo 2.1.5", {configs = {debug = false}}) -- compilation failure on windows
+add_requires("libjpeg-turbo", {configs = {debug = false}}) -- compilation failure on windows
 -- image resize
 add_requires("avir")
 -- text rendering

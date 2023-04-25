@@ -66,7 +66,7 @@ public:
 
     template <typename T2 = T>
     requires std::is_array_v<T>
-    static auto make(size_t size) -> Self
+    static auto make(std::size_t size) -> Self
     {
         return {new value_type[size]{}};
     }
@@ -80,7 +80,7 @@ public:
 
     template <typename T2 = T>
     requires std::is_array_v<T>
-    static auto make_uninitialize(size_t size) -> Self
+    static auto make_uninitialize(std::size_t size) -> Self
     {
         return {new value_type[size]};
     }
@@ -106,14 +106,14 @@ public:
 
     template <typename T2 = T>
     requires std::is_array_v<T>
-    auto operator [] (size_t index) noexcept -> reference
+    auto operator [] (std::size_t index) noexcept -> reference
     {
         return ptr[index];
     }
 
     template <typename T2 = T>
     requires std::is_array_v<T>
-    auto operator [] (size_t index) const noexcept -> value_type
+    auto operator [] (std::size_t index) const noexcept -> value_type
     {
         return ptr[index];
     }

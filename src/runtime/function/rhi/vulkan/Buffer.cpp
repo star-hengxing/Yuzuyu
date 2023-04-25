@@ -1,3 +1,9 @@
+#ifdef USE_MODULES
+import <cstring>;
+#else
+#include <cstring>
+#endif
+
 #include "Buffer.hpp"
 #include "base.hpp"
 
