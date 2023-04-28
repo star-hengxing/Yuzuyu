@@ -1,8 +1,14 @@
 #pragma once
 
+#ifdef USE_MODULES
+import <functional>;
+import <queue>;
+import <mutex>;
+#else
 #include <functional>
 #include <queue>
 #include <mutex>
+#endif
 
 #include <core/base/Owned.hpp>
 #include <platform/audio.hpp>
@@ -33,7 +39,7 @@ private:
     std::function<video_callback> callback;
 
 private:
-    auto play_audio(u8* buffer, usize size) noexcept -> void;
+    auto play_audio(u8* buffer, u32 size) noexcept -> u32;
     auto play_video() noexcept -> void;
 
 public:

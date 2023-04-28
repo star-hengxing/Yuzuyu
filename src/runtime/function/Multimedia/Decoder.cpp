@@ -6,7 +6,7 @@ import <string>;
 
 #include <fast_io.h>
 
-#include <core/base/debug.hpp>
+#include <core/Log.hpp>
 #include "Decoder.hpp"
 
 NAMESPACE_BEGIN(Multimedia::detail)
@@ -37,7 +37,7 @@ auto Decoder::initialize_payload(
     const auto index = av_find_best_stream(format_context, type, -1, -1, &payload.codec, 0);
     if (index < 0 || !payload.codec)
     {
-        perr("av_find_best_stream failed\n");
+        LOG_WARN("Can't find ", (type == AVMEDIA_TYPE_VIDEO ? "video" : "audio"), " best stream");
         return false;
     }
 
@@ -48,14 +48,14 @@ auto Decoder::initialize_payload(
     auto result = avcodec_parameters_to_context(payload.context, stream->codecpar);
     if (result < 0)
     {
-        perr("avcodec_parameters_to_context failed\n");
+        LOG_ERROR("avcodec_parameters_to_context failed");
         return false;
     }
 
     result = avcodec_open2(payload.context, payload.codec, nullptr);
     if (result < 0)
     {
-        perr("avcodec_open2 failed\n");
+        LOG_ERROR("avcodec_open2 failed");
         return false;
     }
 
@@ -77,7 +77,7 @@ auto Decoder::initialize_video() noexcept -> void
 
     if (!video_converter)
     {
-        perr("sws_getContext failed\n");
+        LOG_ERROR("sws_getContext failed");
         return;
     }
 
@@ -92,19 +92,19 @@ auto Decoder::initialize_audio() noexcept -> void
     const auto avc = audio_payload.context;
     auto result = swr_alloc_set_opts2(
         &audio_converter,
-        &avc->ch_layout, sample_format, avc->sample_rate,
+        &avc->ch_layout, SAMPLE_FORMAT, avc->sample_rate,
         &avc->ch_layout, avc->sample_fmt, avc->sample_rate,
         0, nullptr);
 
     if (result != 0)
     {
-        perr("swr_alloc_set_opts2 failed\n");
+        LOG_ERROR("swr_alloc_set_opts2 failed");
         return;
     }
 
     if (swr_init(audio_converter) != 0)
     {
-        perr("swr_init failed\n");
+        LOG_ERROR("swr_init failed");
     }
 
     audio_frame = av_frame_alloc();
@@ -119,14 +119,14 @@ auto Decoder::initialize(const std::string_view filename) noexcept -> bool
         // char error_buf[256];
         // av_strerror(error_code, error_buf, 256);
         // TDOD: log
-        perr("avformat_open_input failed\n");
+        LOG_ERROR("avformat_open_input failed");
         return false;
     }
 
     result = avformat_find_stream_info(format_context, nullptr);
     if (result < 0)
     {
-        perr("avformat_find_stream_info failed\n");
+        LOG_ERROR("avformat_find_stream_info failed");
         return false;
     }
 
@@ -149,6 +149,12 @@ auto Decoder::initialize(const std::string_view filename) noexcept -> bool
 auto Decoder::video_decode(
     AVPacket* packet, u8* buffer, u32 width, u32 height) noexcept -> bool
 {
+    defer
+    {
+        auto tmp = packet;
+        av_packet_free(&tmp);
+    };
+
     if (avcodec_send_packet(video_payload.context, packet) != 0)
         return false;
 
@@ -167,13 +173,18 @@ auto Decoder::video_decode(
               static_cast<uint8_t* const*>(&data),
               &width_bytes);
 
-    av_packet_free(&packet);
     return true;
 }
 
 auto Decoder::audio_decode(
-    AVPacket* packet, u8* buffer, usize size) noexcept -> bool
+    AVPacket* packet, u8* buffer, u32& size) noexcept -> bool
 {
+    defer
+    {
+        auto tmp = packet;
+        av_packet_free(&tmp);
+    };
+
     if (avcodec_send_packet(audio_payload.context, packet) != 0)
         return false;
 
@@ -198,46 +209,45 @@ auto Decoder::audio_decode(
     const auto required_size = static_cast<usize>(av_samples_get_buffer_size(
         nullptr,
         audio_payload.context->ch_layout.nb_channels, samples_size,
-        sample_format, 1));
+        SAMPLE_FORMAT, 1));
 
-    Assert(required_size <= size);
-    av_packet_free(&packet);
+    if (required_size >= size)
+        return false;
+
+    size = required_size;
+
     return true;
 }
 
 auto Decoder::next() noexcept -> Packet
 {
     auto packet = av_packet_alloc();
-    const auto result = av_read_frame(format_context, packet);
-    if (result == AVERROR_EOF) [[unlikely]]
+    if (!packet) [[unlikely]]
     {
-        av_packet_free(&packet);
-        return {Type::eof, nullptr};
-    }
-    else if (result < 0) [[unlikely]]
-    {
-        av_packet_free(&packet);
         return {Type::error, nullptr};
     }
 
-    Assert(result == 0);
-    auto type = Type::unknown;
-    if (has_audio && packet->stream_index == audio_payload.index)
+    const auto result = av_read_frame(format_context, packet);
+    if (result < 0)
     {
-        type = Type::audio;
+        const auto type = (result == AVERROR_EOF ? Type::eof : Type::error);
+        av_packet_free(&packet);
+        return {type, nullptr};
     }
-    else if (has_video && packet->stream_index == video_payload.index)
+    else [[likely]]
     {
-        type = Type::video;
-    }
+        if (has_audio && packet->stream_index == audio_payload.index)
+        {
+            return {Type::audio, packet};
+        }
+        else if (has_video && packet->stream_index == video_payload.index)
+        {
+            return {Type::video, packet};
+        }
 
-    if (type == Type::unknown) [[unlikely]]
-    {
         av_packet_free(&packet);
         return {Type::unknown, nullptr};
     }
-
-    return {type, packet};
 }
 
 auto Decoder::get_video_info() const noexcept -> Rect2D

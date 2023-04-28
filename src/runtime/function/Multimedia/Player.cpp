@@ -1,9 +1,12 @@
+#ifdef USE_MODULES
+import <cmath>;
+import <thread>;
+#else
 #include <cmath>
 #include <thread>
+#endif
 
-#include <fast_io.h>
-
-#include <core/base/debug.hpp>
+#include <core/Log.hpp>
 #include <platform/os.hpp>
 #include "Player.hpp"
 
@@ -57,59 +60,66 @@ auto Player::set_callback(std::function<video_callback> callback) noexcept -> Se
 
 Player::Player(const std::string_view filename)
 {
-    if (!decoder.initialize(filename))
+    if (!decoder.initialize(filename)) [[unlikely]]
         return;
 
     bool has_video = true;
     bool has_audio = true;
     const auto [width, height] = decoder.get_video_info();
-    if (width == 0 || height == 0)
+    if (width == 0 || height == 0) [[unlikely]]
     {
         has_video = false;
-        perrln("video not found");
+        LOG_WARN("video not found");
     }
 
     const auto format = decoder.get_audio_info();
-    if (format.channels == 0)
+    if (format.channels == 0) [[unlikely]]
     {
         has_audio = false;
-        perrln("audio not found");
+        LOG_WARN("audio not found");
     }
 
-    if (!has_video && !has_audio)
+    if (!has_video && !has_audio) [[unlikely]]
         return;
 
     // initialize video
     video_buffer = Owned<Color[]>::make(width * height);
     // initialize audio
     auto msg = audio_system.initialize();
-    if (msg)
+    if (msg) [[unlikely]]
     {
-        perrln(fast_io::mnp::os_c_str(msg));
+        LOG_ERROR(fast_io::mnp::os_c_str(msg));
         return;
     }
 
-    Assert(audio_system.set_format(format));
-    audio_system.set_callback([this](u8* buffer, usize size) {
-        this->play_audio(buffer, size);
+    audio_system.set_format(format);
+    audio_system.set_callback([this](u8* buffer, u32 size) -> u32 {
+        return this->play_audio(buffer, size);
     });
 
     is_run = true;
 }
 
-auto Player::play_audio(u8* buffer, usize size) noexcept -> void
+auto Player::play_audio(u8* buffer, u32 size) noexcept -> u32
 {
     AVPacket* packet;
     {
         std::lock_guard lock{mutex};
         if (audio_queue.empty())
-            return;
+            return 0;
 
         packet = audio_queue.front();
         audio_queue.pop();
     }
     // The decoded data will write directly into the cache of the audio
-    decoder.audio_decode(packet, buffer, size);
+    const auto result = decoder.audio_decode(packet, buffer, size);
+    if (!result) [[unlikely]]
+    {
+        LOG_WARN("audio decode error");
+        return 0;
+    }
+
+    return size;
 }
 
 auto Player::play_video() noexcept -> void
@@ -147,7 +157,7 @@ auto Player::play() noexcept -> void
 
     using Type = Multimedia::Decoder::Type;
 
-    Assert(audio_system.start());
+    audio_system.start();
     const auto video_thread = std::jthread{&Player::play_video, this};
 
     while (true)
@@ -160,7 +170,7 @@ auto Player::play() noexcept -> void
         {
             // TODO: error handle
             is_run = false;
-            Assert(audio_system.end());
+            audio_system.end();
             return;
         }
         // avoid excessive memory usage
@@ -186,7 +196,7 @@ auto Player::play() noexcept -> void
     }
 
     is_run = false;
-    Assert(audio_system.end());
+    audio_system.end();
 }
 
 NAMESPACE_END(Multimedia::detail)

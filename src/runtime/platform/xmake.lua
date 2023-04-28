@@ -11,4 +11,5 @@ target("platform")
         add_syslinks("ole32")
     end
 
+    add_deps("core")
     add_packages("fast_io", {public = true})

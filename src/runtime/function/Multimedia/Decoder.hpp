@@ -33,6 +33,10 @@ struct ffmpeg_payload
 
 struct Decoder
 {
+public:
+    static constexpr AVSampleFormat SAMPLE_FORMAT = AV_SAMPLE_FMT_S16;
+    static constexpr int            SAMPLE_RATE   = 44100;
+
 private:
     AVFormatContext* format_context = nullptr;
 
@@ -45,7 +49,6 @@ private:
     ffmpeg_payload audio_payload;
     SwrContext* audio_converter = nullptr;
     AVFrame* audio_frame = nullptr;
-    const AVSampleFormat sample_format = AV_SAMPLE_FMT_S16;
 
     std::string filename;
 
@@ -89,7 +92,7 @@ public:
      * @param packet move packet ownership
      * @param[out] buffer
      */
-    auto audio_decode(AVPacket* packet, u8* buffer, usize size) noexcept -> bool;
+    auto audio_decode(AVPacket* packet, u8* buffer, u32& size) noexcept -> bool;
 
     auto get_video_pts() const noexcept -> f64;
     auto get_audio_pts() const noexcept -> f64;

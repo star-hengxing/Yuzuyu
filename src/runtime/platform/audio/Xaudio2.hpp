@@ -1,8 +1,15 @@
 #pragma once
 
+#ifdef USE_MODULES
+import <condition_variable>;
+import <mutex>;
+import <functional>;
+#else
 #include <condition_variable>
 #include <mutex>
 #include <functional>
+#endif
+
 #include <XAudio2.h>
 
 #include <core/base/Owned.hpp>
@@ -10,7 +17,7 @@
 
 NAMESPACE_BEGIN(os::audio::detail)
 
-static constexpr auto MAX_SINGLE_BUFFER_SIZE = usize{4096};
+static constexpr auto MAX_SINGLE_BUFFER_SIZE = usize{8192};
 static constexpr auto MAX_BUFFER_SIZE = usize{4};
 static constexpr auto MIN_BUFFER_SIZE_CALLBACK = MAX_BUFFER_SIZE / 2;
 // unit: milliseconds
@@ -41,22 +48,24 @@ private:
 private:
     auto worker() noexcept -> void;
 
+    auto submit(const XAUDIO2_BUFFER& buffer) noexcept -> void;
+
 public:
     ~Xaudio2();
 
     auto initialize() noexcept -> const char*;
 
-    auto set_volume(f32 volume) noexcept -> bool;
+    auto set_volume(f32 volume) noexcept -> void;
 
-    auto set_format(const Format& format) noexcept -> bool;
+    auto set_format(const Format& format) noexcept -> void;
 
     auto set_callback(std::function<audio_callback> callback) noexcept -> Self&;
 
-    auto start() noexcept -> bool;
+    auto start() noexcept -> void;
 
-    auto end() noexcept -> bool;
+    auto end() noexcept -> void;
     // acquire ownership of data until all data is played
-    auto write(const u8* const data, usize size) noexcept -> bool;
+    auto write(const u8* const data, u32 size) noexcept -> bool;
 };
 
 NAMESPACE_END(os::audio::detail)

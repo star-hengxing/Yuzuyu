@@ -1,6 +1,12 @@
+#ifdef USE_MODULES
+import <algorithm>;
+import <thread>;
+#else
+#include <algorithm>
 #include <thread>
+#endif
 
-#include <core/base/debug.hpp>
+#include <core/Log.hpp>
 #include <core/base/range.hpp>
 #include <platform/os.hpp>
 #include "Xaudio2.hpp"
@@ -9,7 +15,7 @@ NAMESPACE_BEGIN(os::audio::detail)
 
 auto Xaudio2::initialize() noexcept -> const char*
 {
-    if (is_run)
+    if (is_run) [[unlikely]]
     {
         return "audio is already initialized";
     }
@@ -25,13 +31,13 @@ auto Xaudio2::initialize() noexcept -> const char*
 #else
     result = XAudio2Create(&xaduio);
 #endif
-    if (FAILED(result))
+    if (FAILED(result)) [[unlikely]]
     {
         return "XAudio2Create failed";
     }
 
     result = xaduio->CreateMasteringVoice(&master);
-    if (FAILED(result))
+    if (FAILED(result)) [[unlikely]]
     {
         return "CreateMasteringVoice failed";
     }
@@ -48,63 +54,73 @@ auto Xaudio2::set_callback(std::function<audio_callback> callback) noexcept -> S
     return *this;
 }
 
-auto Xaudio2::start() noexcept -> bool
+auto Xaudio2::start() noexcept -> void
 {
-    const auto result = SUCCEEDED(source->Start(0));
-    if (!result)
+    const auto result = FAILED(source->Start(0));
+    if (result || !callback)
     {
-        return false;
+        LOG_ERROR("Can't start audio");
     }
 
     index = 0;
     is_play = true;
     condition.notify_one();
-    return true;
 }
 
-auto Xaudio2::end() noexcept -> bool
+auto Xaudio2::end() noexcept -> void
 {
+    // set XAUDIO2_VOICE_STATE SamplesPlayed zero
+    // https://stackoverflow.com/questions/65754955/how-to-reset-a-ixaudio2sourcevoices-samplesplayed-counter-after-flushing-sour
+    const auto buffer = XAUDIO2_BUFFER
     {
-        std::lock_guard lock{mutex};
-        is_play = false;
-        // set XAUDIO2_VOICE_STATE SamplesPlayed zero
-        // https://stackoverflow.com/questions/65754955/how-to-reset-a-ixaudio2sourcevoices-samplesplayed-counter-after-flushing-sour
-        auto buffer = XAUDIO2_BUFFER{};
-        buffer.Flags = XAUDIO2_END_OF_STREAM;
-        buffer.pAudioData = ring_buffer.get() + index * MAX_SINGLE_BUFFER_SIZE;
+        .Flags = XAUDIO2_END_OF_STREAM,
         // must be aligned to 4 bytes, otherwise XAudio2 will fail
-        buffer.AudioBytes = 4;
+        .AudioBytes = 4,
+        .pAudioData = ring_buffer.get() + index * MAX_SINGLE_BUFFER_SIZE,
+    };
 
-        if (FAILED(source->SubmitSourceBuffer(&buffer)))
-            return false;
+    is_play = false;
+    submit(buffer);
+
+    if (FAILED(source->Stop(0))) [[unlikely]]
+    {
+        LOG_ERROR("Can't stop audio");
     }
-    return SUCCEEDED(source->Stop(0));
 }
 
-auto Xaudio2::set_volume(f32 volume) noexcept -> bool
+auto Xaudio2::set_volume(f32 volume) noexcept -> void
 {
-    return SUCCEEDED(source->SetVolume(volume));
+    if (FAILED(source->SetVolume(volume))) [[unlikely]]
+    {
+        LOG_ERROR("Can't set audio volume");
+    }
 }
 
-auto Xaudio2::set_format(const Format& format) noexcept -> bool
+auto Xaudio2::set_format(const Format& format) noexcept -> void
 {
     if (source)
     {
         source->DestroyVoice();
     }
 
-    auto wf = WAVEFORMATEX{};
-    wf.wFormatTag = WAVE_FORMAT_PCM;
-    wf.wBitsPerSample = format.sample_bit;
-    wf.nChannels = format.channels;
-    wf.nSamplesPerSec = format.sample_rate;
-    wf.nBlockAlign = wf.nChannels * (wf.wBitsPerSample / 8);
-    wf.nAvgBytesPerSec = wf.nBlockAlign * wf.nSamplesPerSec;
+    const auto per_second_bytes = static_cast<WORD>(format.channels * (format.sample_bit / 8));
+    const auto wf = WAVEFORMATEX
+    {
+        .wFormatTag      = WAVE_FORMAT_PCM,
+        .nChannels       = format.channels,
+        .nSamplesPerSec  = static_cast<DWORD>(format.sample_rate),
+        .nAvgBytesPerSec = static_cast<DWORD>(per_second_bytes * format.sample_rate),
+        .nBlockAlign     = per_second_bytes,
+        .wBitsPerSample  = format.sample_bit,
+    };
 
-    return SUCCEEDED(xaduio->CreateSourceVoice(&source, &wf));
+    if (FAILED(xaduio->CreateSourceVoice(&source, &wf))) [[unlikely]]
+    {
+        LOG_ERROR("Can't create audio voice");
+    }
 }
 
-auto Xaudio2::write(const u8* const data, usize size) noexcept -> bool
+auto Xaudio2::write(const u8* const data, u32 size) noexcept -> bool
 {
     if (!is_play || size > XAUDIO2_MAX_BUFFER_BYTES) [[unlikely]]
         return false;
@@ -113,10 +129,13 @@ auto Xaudio2::write(const u8* const data, usize size) noexcept -> bool
     if (state.BuffersQueued >= XAUDIO2_MAX_QUEUED_BUFFERS) [[unlikely]]
         return false;
 
-    auto buffer = XAUDIO2_BUFFER{};
-    buffer.pAudioData = data;
-    buffer.AudioBytes = size;
-    return SUCCEEDED(source->SubmitSourceBuffer(&buffer));
+    const auto buffer = XAUDIO2_BUFFER
+    {
+        .AudioBytes = size,
+        .pAudioData = data,
+    };
+    submit(buffer);
+    return true;
 }
 
 Xaudio2::~Xaudio2()
@@ -140,6 +159,19 @@ Xaudio2::~Xaudio2()
     condition.notify_one();
 }
 
+auto Xaudio2::submit(const XAUDIO2_BUFFER& buffer) noexcept -> void
+{
+    std::lock_guard lock{mutex};
+
+    if (!is_play || !is_run) [[unlikely]]
+        return;
+
+    if (FAILED(source->SubmitSourceBuffer(&buffer))) [[unlikely]]
+    {
+        LOG_ERROR("Can't submit audio buffer");
+    }
+}
+
 auto Xaudio2::worker() noexcept -> void
 {
     while (true)
@@ -153,25 +185,27 @@ auto Xaudio2::worker() noexcept -> void
             return;
 
         source->GetState(&state);
-        do
-        {
-            if (state.BuffersQueued > MIN_BUFFER_SIZE_CALLBACK || !callback)
-                break;
 
+        if (state.BuffersQueued <= MIN_BUFFER_SIZE_CALLBACK)
+        {
             for ([[maybe_unused]] auto _ : range(MAX_BUFFER_SIZE - state.BuffersQueued))
             {
                 const auto current_buffer = ring_buffer.get() + index * MAX_SINGLE_BUFFER_SIZE;
                 index = (index + 1) % MAX_BUFFER_SIZE;
-                std::invoke(callback, current_buffer, MAX_SINGLE_BUFFER_SIZE);
+                // write audio data to current_buffer
+                const auto size = std::invoke(callback, current_buffer, MAX_SINGLE_BUFFER_SIZE);
+                if (size == 0)
+                    continue;
 
-                auto buffer = XAUDIO2_BUFFER{};
-                buffer.pAudioData = current_buffer;
-                buffer.AudioBytes = MAX_SINGLE_BUFFER_SIZE;
-                const auto result = SUCCEEDED(source->SubmitSourceBuffer(&buffer));
-                Assert(result);
+                const auto buffer = XAUDIO2_BUFFER
+                {
+                    .AudioBytes = std::min<UINT32>(size, MAX_SINGLE_BUFFER_SIZE),
+                    .pAudioData = current_buffer,
+                };
+
+                submit(buffer);
             }
-
-        } while (false);
+        }
 
         os::sleep(SLEEP_TIME);
     }

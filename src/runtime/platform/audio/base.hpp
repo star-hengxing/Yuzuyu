@@ -11,6 +11,6 @@ struct Format
     usize sample_rate;
 };
 
-using audio_callback = void(u8*, usize);
+using audio_callback = u32(u8*, u32);
 
 NAMESPACE_END(os::audio)

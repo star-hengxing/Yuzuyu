@@ -4,6 +4,6 @@ target("Multimedia")
     add_files("**.cpp")
     add_headerfiles("(**.hpp)")
 
-    add_deps("platform")
+    add_deps("core", "platform")
     add_packages("fast_io")
     add_packages("ffmpeg", {public = true})
