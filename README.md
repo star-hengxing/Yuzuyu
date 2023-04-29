@@ -2,14 +2,13 @@
 
 The name Yuzuyu comes from the translation of the character 柊ゆずゆ in [フレラバ](https://ja.wikipedia.org/wiki/%E3%83%95%E3%83%AC%E3%83%A9%E3%83%90_%E3%80%9CFriend_to_Lover%E3%80%9C).
 
+> This is work in progress. Do not using it in production.
+
 # Getting started
 
 ## Dependencies
 
 - [xmake](https://xmake.io/#/guide/installation)
-- [glslang](https://www.khronos.org/opengles/sdk/tools/Reference-Compiler)
-- [meson](https://mesonbuild.com/Quick-guide.html) (use for third-part library)
-- [ninja](https://ninja-build.org) (use for third-part library)
 - Requires C++20 compiler.
 
 ## Setup
@@ -21,7 +20,7 @@ Install msvc toolchain.
 Recommend use [scoop](https://scoop.sh/) as package manager.
 
 ```sh
-scoop install xmake glslang meson ninja
+scoop install xmake vulkansdk
 ```
 
 ### Arch Linux
@@ -33,7 +32,7 @@ TODO
 Clone repo, then try
 
 ```sh
-xmake -y
+xmake f -m debug -y
 xmake build sandbox
 ```
 

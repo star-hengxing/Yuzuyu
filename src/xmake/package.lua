@@ -1,5 +1,8 @@
 -- dev
 
+-- build tool
+add_requires("glslang", {configs = {binaryonly = true}})
+
 -- vulkan
 if has_config("volk") then
     add_requires("volk", {configs = {header_only = true}})
