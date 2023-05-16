@@ -15,7 +15,7 @@ add_requires("vulkan-memory-allocator")
 add_requires("glfw")
 add_requires("libsdl")
 -- log
-add_requires("spdlog")
+add_requires("spdlog 1.10.0")
 -- i/o
 add_requires("fast_io")
 -- image codec

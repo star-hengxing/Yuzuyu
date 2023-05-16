@@ -58,8 +58,9 @@ auto operator * (defer_dummy, F f) noexcept -> deferrer<F>
 }
 
 #define DEFER_CONCAT(LINE) scope_guard_##LINE
+#define DEFER_LINE(LINE) DEFER_CONCAT(LINE)
 /**
 * golang-style operation, RAII wrapper for third-party c library
 * example: defer { free(ptr); };
 */
-#define defer auto DEFER_CONCAT(__LINE__) = ::defer_dummy{} * [=]()
+#define defer auto DEFER_LINE(__LINE__) = ::defer_dummy{} * [=]()
