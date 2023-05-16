@@ -92,6 +92,7 @@ auto Renderer::clean() noexcept -> void
 
     for (auto&& i : command_pools)
     {
+        // crash with volk, why?
         vkDestroyCommandPool(device.handle, i, VK_NULL_HANDLE);
         i = VK_NULL_HANDLE;
     }

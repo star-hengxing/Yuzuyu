@@ -5,7 +5,8 @@ NAMESPACE_BEGIN(rhi::vulkan)
 
 auto create_command_pool(VkDevice device, u32 queue_index) noexcept -> VkCommandPool
 {
-    const auto info = VkCommandPoolCreateInfo{
+    const auto info = VkCommandPoolCreateInfo
+    {
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
         .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
         .queueFamilyIndex = queue_index,

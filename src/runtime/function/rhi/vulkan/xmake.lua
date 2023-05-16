@@ -21,7 +21,7 @@ target("rhi.vulkan")
         add_options("volk")
         add_packages("volk", {public = true})
         -- https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/quick_start.html
-        add_defines("VMA_STATIC_VULKAN_FUNCTIONS=0")
+        add_defines("VMA_STATIC_VULKAN_FUNCTIONS")
         add_defines("VMA_DYNAMIC_VULKAN_FUNCTIONS=0")
     else
         add_packages("vulkansdk", {public = true})
