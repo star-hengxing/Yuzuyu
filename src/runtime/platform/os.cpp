@@ -19,7 +19,7 @@ auto time() noexcept -> fast_io::unix_timestamp
 auto sleep(usize milliseconds) noexcept -> void
 {
 #ifdef _WIN32
-    ::Sleep(milliseconds);
+    ::Sleep(static_cast<DWORD>(milliseconds));
 #else
     const timespec rtqp
     {

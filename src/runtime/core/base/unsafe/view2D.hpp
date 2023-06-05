@@ -6,7 +6,7 @@ import <algorithm>;
 #include <algorithm>
 #endif
 
-#include <core/base/base.hpp>
+#include "../base.hpp"
 
 NAMESPACE_BEGIN(unsafe)
 
